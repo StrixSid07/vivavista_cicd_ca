@@ -114,7 +114,7 @@ const TravelFilter = () => {
   }, []);
 
   const [filters, setFilters] = useState({
-    price: 500,
+    price: 10000,
     boardBasis: [],
     hotelType: [],
     rating: "",
@@ -251,12 +251,12 @@ const TravelFilter = () => {
                 variant="paragraph"
                 className="text-green-500 font-semibold mb-2 customfontstitle"
               >
-                Price: ${filters.price}
+                Price: £{filters.price}
               </Typography>
               <input
                 type="range"
                 min="129"
-                max="500"
+                max="10000"
                 step="1"
                 value={filters.price}
                 onChange={(e) =>
@@ -439,17 +439,23 @@ const TravelFilter = () => {
                         {item.title}
                       </Typography>
                       <Typography className="text-black customfontstitle">
-                        {item.destination?.name || "Unknown Destination"} -{" "}
-                        {item.prices[0]?.flightDetails?.outbound?.airline ||
-                          "N/A"}{" "}
-                        Airline
+                        {item.destination?.name || "Unknown Destination"}
+                        {item.prices[0]?.flightDetails?.outbound?.airline && (
+                          <>
+                            {" "}
+                            - {
+                              item.prices[0].flightDetails.outbound.airline
+                            }{" "}
+                            Airline
+                          </>
+                        )}
                       </Typography>
                     </CardBody>
 
                     {/* Price & Button Section */}
                     <div className="w-full md:w-1/5 flex flex-col bg-gray-100 justify-center items-center gap-2 p-3 md:p-4">
                       <Typography className="text-center font-semibold text-green-500 customfontstitle">
-                        ${item.prices[0]?.price || "N/A"} per person
+                        £{item.prices[0]?.price || "N/A"} per person
                       </Typography>
                       <Button
                         color="green"

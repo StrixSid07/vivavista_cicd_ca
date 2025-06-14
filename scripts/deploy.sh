@@ -12,46 +12,46 @@ echo "📁 Navigating to /var/www"
 cd /var/www
 
 # Clone the repo if it doesn't exist
-if [ ! -d vivavista_cicd_uk ]; then
+if [ ! -d vivavista_cicd_ca ]; then
   echo "🌀 Cloning repository..."
-  git clone https://github.com/StrixSid07/vivavista_cicd_uk.git
+  git clone https://github.com/StrixSid07/vivavista_cicd_ca.git
 fi
 
 echo "📦 Pulling latest changes..."
-cd vivavista_cicd_uk
+cd vivavista_cicd_ca
 git fetch origin
 git reset --hard origin/main
 
 ############### BACKEND SETUP ##################
-echo "🚀 Setting up backend (vivavistaukbackend)..."
-cd vivavistaukbackend
+echo "🚀 Setting up backend (vivavistacabackend)..."
+cd vivavistacabackend
 npm install
 
 echo "🔁 Restarting backend with PM2..."
-pm2 stop vivavista-backend-uk || true
-pm2 start server.js --name vivavista-backend-uk
+pm2 stop vivavista-backend-ca || true
+pm2 start server.js --name vivavista-backend-ca
 pm2 save
 pm2 startup
 
 ############### ADMIN PANEL ##################
-echo "🛠️ Building admin panel (vivavistaadminuk)..."
-cd ../vivavistaukadmin
+echo "🛠️ Building admin panel (vivavistacaadmin)..."
+cd ../vivavistacaadmin
 npm install
 npm run build
 
-echo "📤 Deploying admin panel to /var/www/vivavistaadminuk..."
-rm -rf /var/www/vivavistaadminuk/*
-cp -r dist/* /var/www/vivavistaadminuk/
+echo "📤 Deploying admin panel to /var/www/vivavistacaadmin..."
+rm -rf /var/www/vivavistacaadmin/*
+cp -r dist/* /var/www/vivavistacaadmin/
 
 ############### MAIN WEBSITE ##################
-echo "🌐 Building main website (vivavistauk)..."
-cd ../vivavistauk
+echo "🌐 Building main website (vivavistaca)..."
+cd ../vivavistaca
 npm install
 npm run build
 
-echo "📤 Deploying main website to /var/www/vivavistauk..."
-rm -rf /var/www/vivavistauk/*
-cp -r dist/* /var/www/vivavistauk/
+echo "📤 Deploying main website to /var/www/vivavistaca..."
+rm -rf /var/www/vivavistaca/*
+cp -r dist/* /var/www/vivavistaca/
 
 echo "✅ Deployment completed successfully!"
 EOF

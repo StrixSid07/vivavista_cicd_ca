@@ -241,7 +241,7 @@ const TravelPackages = ({ destinations }) => {
 
                           {/* Price */}
                           <p className="text-white text-lg font-bold drop-shadow">
-                            £{deal.prices[0]?.price || "N/A"}
+                            ${deal.prices[0]?.price || "N/A"}
                             <span className="text-sm font-normal text-gray-200 ml-1">
                               /Per Person
                             </span>

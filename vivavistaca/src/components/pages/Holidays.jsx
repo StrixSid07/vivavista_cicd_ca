@@ -264,7 +264,7 @@ const Holidays = () => {
                         </div>
 
                         <p className="text-lg font-bold text-gradient bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">
-                          Starting from £{deal.prices[0]?.price || "N/A"}
+                          Starting from ${deal.prices[0]?.price || "N/A"}
                         </p>
                       </div>
                     </CardBody>

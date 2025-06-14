@@ -166,7 +166,7 @@ const NewAddedCardComponent = ({
             </div>
 
             <Typography className="text-lg font-bold text-deep-orange-600 customfontstitle">
-              £{price}
+              ${price}
               <span className="text-sm font-normal text-gray-500 ml-1 customfontstitle">
                 /Per Person
               </span>

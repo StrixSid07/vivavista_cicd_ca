@@ -157,7 +157,7 @@ const MulticenterCard = ({ deal, index, currentImage, nextImage, prevImage }) =>
           {/* Price + Button */}
           <div className="flex justify-between items-center">
             <div className="text-amber-600 font-bold">
-              £{deal.prices[0]?.price || "N/A"}
+              ${deal.prices[0]?.price || "N/A"}
               <span className="text-xs font-normal text-gray-500 ml-1">/per person</span>
             </div>
             <button

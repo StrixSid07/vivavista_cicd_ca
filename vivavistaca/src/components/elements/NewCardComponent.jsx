@@ -83,7 +83,7 @@ const NewCardComponent = ({
           {name}
         </Typography>
         <Typography variant="h6" color="gray" className="mt-2">
-          £{price.toLocaleString()}
+          ${price.toLocaleString()}
         </Typography>
         <div className="flex items-center text-sm text-gray-500 mt-2">
           <FaMapMarkerAlt className="mr-1" /> {address}

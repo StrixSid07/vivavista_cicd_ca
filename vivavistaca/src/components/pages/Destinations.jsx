@@ -80,16 +80,20 @@ const Destinations = () => {
     const fetchDeals = async () => {
       setLoading(true);
       try {
+        console.log(`Fetching deals for destination: ${realName}`);
         const response = await axios.get(
           `${Base_Url}/destinations/destination-filter`,
           { params: { name: realName } }
         );
+        console.log("Destination deals response:", response.data);
         setDeals(response.data);
         setImageIndex(
           response.data.reduce((acc, deal) => ({ ...acc, [deal._id]: 0 }), {})
         );
       } catch (error) {
         console.error("Error fetching destination deals:", error);
+        // Don't stop the component from rendering, just show empty deals
+        setDeals([]);
       } finally {
         setLoading(false);
       }

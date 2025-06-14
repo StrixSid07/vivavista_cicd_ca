@@ -56,7 +56,7 @@ export const ManagePrices = () => {
   // Form data
   const [hotels, setHotels] = useState([]);
   const [airports, setAirports] = useState([]);
-  const countries = ["UK", "USA", "Canada"];
+  const countries = ["Canada", "USA", "UK"];
 
   useEffect(() => {
     fetchDeals();

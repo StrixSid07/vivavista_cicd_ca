@@ -63,10 +63,10 @@ const Navbar = () => {
 
   const navItems = [
     // { name: "Home", href: "/", icon: home },
-    { name: "Package", href: "/packages", icon: packageImg },
+    { name: "Travel Bundle", href: "/packages", icon: packageImg },
     { name: "Hot Bargains", href: "/topdeals", icon: hot },
     {
-      name: "Holidays",
+      name: "Vacations",
       href: "#",
       icon: beach,
       dropdown: holidayCategories.map(({ name }) => ({
@@ -89,10 +89,10 @@ const Navbar = () => {
 
   const navItemsForMobile = [
     // { name: "Home", href: "/" },
-    { name: "Package", href: "/packages" },
+    { name: "Travel Bundle", href: "/packages" },
     { name: "Hot Bargains", href: "/topdeals" },
     {
-      name: "Holidays",
+      name: "Vacations",
       href: "#",
       icon: beach,
       dropdown: holidayCategories.map(({ name }) => ({
@@ -239,8 +239,8 @@ const Navbar = () => {
                   transition={{ duration: 0.3, ease: "easeInOut" }}
                   className="absolute right-0 mt-2 w-36 bg-white text-black rounded-lg shadow-lg overflow-hidden border"
                 >
-                  {["UK", "USA", "Canada"].map((item) => {
-                    const urls = {
+                  {["Canada", "USA", "UK"].map((item) => {
+                                          const urls = {
                       UK: "https://www.vivavistavacations.co.uk/",
                       USA: "https://www.vivavistavacations.com/",
                       Canada: "https://www.vivavistavacations.ca/",
@@ -524,7 +524,7 @@ const Navbar = () => {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="absolute right-0 mt-2 w-36 bg-white text-black rounded-lg shadow-lg overflow-hidden border"
                   >
-                    {["UK", "USA", "Canada"].map((item) => {
+                    {["Canada", "USA", "UK"].map((item) => {
                       const urls = {
                         UK: "https://www.vivavistavacations.co.uk/",
                         USA: "https://www.vivavistavacations.com/",

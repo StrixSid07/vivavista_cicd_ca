@@ -30,12 +30,12 @@ const corsOptions = {
     "https://54.172.95.174",
     "https://vivavista.netlify.app",
     "http://vivavistaadmin.netlify.app",
-    "http://vivavistavacations.co.uk",
-    "http://www.vivavistavacations.co.uk",
-    "https://vivavistavacations.co.uk",
+    "http://vivavistavacations.ca",
+    "http://www.vivavistavacations.ca",
+    "https://vivavistavacations.ca",
     "https://vivavistaadmin.netlify.app",
-    "https://www.vivavistavacations.co.uk",
-    "https://api.vivavistavacations.co.uk",
+    "https://www.vivavistavacations.ca",
+    "https://api.vivavistavacations.ca",
     "http://localhost:5175/",
   ],
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -81,7 +81,7 @@ app.use(
 // ✅ Middleware to Set/Get Country from Session
 app.use((req, res, next) => {
   if (!req.session.country) {
-    req.session.country = "UK"; // Default country
+    req.session.country = "Canada"; // Default country
   }
   req.user = { country: req.session.country }; // Attach selected country to req.user
   next();
@@ -143,16 +143,16 @@ if (isLocal) {
   // 🔹 Production Server (HTTPS)
   // const sslOptions = {
   //   key: fs.readFileSync(
-  //     "/etc/letsencrypt/live/vivavistavacations.co.uk/privkey.pem"
+  //     "/etc/letsencrypt/live/vivavistavacations.ca/privkey.pem"
   //   ),
   //   cert: fs.readFileSync(
-  //     "/etc/letsencrypt/live/vivavistavacations.co.uk/fullchain.pem"
+  //     "/etc/letsencrypt/live/vivavistavacations.ca/fullchain.pem"
   //   ),
   // };
 
   // https.createServer(sslOptions, app).listen(PORT, "0.0.0.0", () => {
   //   console.log(
-  //     `🚀 Secure Server running on https://api.vivavistavacations.co.uk:${PORT}`
+  //     `🚀 Secure Server running on https://api.vivavistavacations.ca:${PORT}`
   //   );
   // });
   app.listen(PORT, "0.0.0.0", () =>

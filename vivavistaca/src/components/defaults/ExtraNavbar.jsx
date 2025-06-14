@@ -18,7 +18,7 @@ const flagUrls = {
 
 const ExtraNavbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [region, setRegion] = useState("UK"); // Default to UK
+  const [region, setRegion] = useState("Canada"); // Default to Canada
 
   return (
     <header className="bg-[#0073b4] text-white py-1 text-base">
@@ -26,19 +26,19 @@ const ExtraNavbar = () => {
         {/* Left Side - Contact Info */}
         <div className="flex items-center space-x-6 sm:space-x-4">
           <a
-            href="tel:+17632275032"
+            href="tel:+18000000000"
             className="flex items-center space-x-2 transition-colors duration-300 ease-in-out hover:text-deep-orange-700 text-lg"
           >
             <FaPhoneAlt />
-            <span className="hidden sm:inline">0203 780 5023</span>
+            <span className="hidden sm:inline">{region === "USA" ? "1 8** *** ****" : region === "Canada" ? "18** *** ****" : "0203 780 5023"}</span>
           </a>
           <a
-            href="mailto:admin@vivavistavacations.co.uk"
+            href="mailto:admin@vivavistavacations.ca"
             className="flex items-center space-x-2 transition-colors duration-300 ease-in-out hover:text-deep-orange-700 text-lg"
           >
             <FaEnvelope />
             <span className="hidden sm:inline">
-              admin@vivavistavacations.co.uk
+              admin@vivavistavacations.ca
             </span>
           </a>
         </div>
@@ -100,7 +100,7 @@ const ExtraNavbar = () => {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="absolute right-0 mt-2 w-36 bg-white text-black rounded-lg shadow-lg overflow-hidden border"
             >
-              {["UK", "USA", "Canada"].map((item) => (
+              {["Canada", "USA", "UK"].map((item) => (
                 <li
                   key={item}
                   className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-200 text-[#D35400] font-semibold cursor-pointer transition-all duration-200"

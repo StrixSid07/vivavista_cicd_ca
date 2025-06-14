@@ -7,9 +7,9 @@ import {
   FaPlus,
   FaMinus,
   FaSearch,
+  FaMoon
 } from "react-icons/fa";
 import { HiOutlineLocationMarker } from "react-icons/hi";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -24,11 +24,23 @@ const SearchBar = ({ roomOptions }) => {
   const [formData, setFormData] = useState({
     departure: "",
     destination: "",
-    checkIn: null,
-    checkOut: null,
+    nights: "2",
     rooms: 1,
     guests: 1,
   });
+
+  // Nights options
+  const nightsOptions = [
+    { value: "2", label: "2 Nights" },
+    { value: "3", label: "3 Nights" },
+    { value: "4", label: "4 Nights" },
+    { value: "5", label: "5 Nights" },
+    { value: "6", label: "6 Nights" },
+    { value: "7", label: "7 Nights" },
+    { value: "8", label: "8 Nights" },
+    { value: "9", label: "9 Nights" },
+    { value: "10+", label: "10+ Nights" },
+  ];
 
   // Fetch Airports and Destinations from API
   useEffect(() => {
@@ -54,10 +66,6 @@ const SearchBar = ({ roomOptions }) => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleDateChange = (date, field) => {
-    setFormData({ ...formData, [field]: date });
   };
 
   const handleSubmit = (e) => {
@@ -110,48 +118,23 @@ const SearchBar = ({ roomOptions }) => {
         </select>
       </div>
 
-      {/* Check-in Date */}
+      {/* Nights */}
       <div className="flex flex-col justify-center w-full md:w-48 border-b md:border-b-0 md:border-r border-black px-4 py-3">
         <label className="flex items-center gap-2 text-md text-white mb-2">
-          <FaCalendarAlt /> Check-in
+          <FaMoon /> Nights
         </label>
-        <DatePicker
-          selected={formData.checkIn}
-          onChange={(date) => handleDateChange(date, "checkIn")}
+        <select
+          name="nights"
+          value={formData.nights}
+          onChange={handleChange}
           className="bg-white text-gray-800 border border-black rounded-md px-3 py-2 text-sm w-full"
-          placeholderText="Select Date"
-          dateFormat="yyyy-MM-dd"
-          minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
-          maxDate={new Date(new Date().setMonth(new Date().getMonth() + 12))}
-        />
-      </div>
-
-      {/* Check-out Date */}
-      <div className="flex flex-col justify-center w-full md:w-48 border-b md:border-b-0 md:border-r border-black px-4 py-3">
-        <label className="flex items-center gap-2 text-md text-white mb-2">
-          <FaCalendarAlt /> Check-out
-        </label>
-        <DatePicker
-          selected={formData.checkOut}
-          onChange={(date) => handleDateChange(date, "checkOut")}
-          className="bg-white text-gray-800 border border-black rounded-md px-3 py-2 text-sm w-full"
-          placeholderText="Select Date"
-          dateFormat="yyyy-MM-dd"
-          minDate={
-            formData.checkIn
-              ? new Date(formData.checkIn)
-              : new Date(new Date().setDate(new Date().getDate() + 1))
-          }
-          maxDate={
-            formData.checkIn
-              ? new Date(
-                new Date(formData.checkIn).setMonth(
-                  new Date(formData.checkIn).getMonth() + 3
-                )
-              )
-              : new Date(new Date().setMonth(new Date().getMonth() + 12))
-          }
-        />
+        >
+          {nightsOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Rooms */}
@@ -225,7 +208,6 @@ const SearchBar = ({ roomOptions }) => {
           </button>
         </div>
       </div>
-
 
       <button
         type="submit"

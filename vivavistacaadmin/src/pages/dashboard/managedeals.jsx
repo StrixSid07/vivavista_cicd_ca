@@ -880,7 +880,7 @@ export const ManageDeals = () => {
             />
             <Typography variant="h6">Available Countries</Typography>
             <div className="grid gap-2">
-              {["UK", "USA", "Canada"].map((country) => (
+              {["Canada", "USA", "UK"].map((country) => (
                 <label
                   key={country}
                   className="flex cursor-pointer items-center"
@@ -1449,7 +1449,7 @@ export const ManageDeals = () => {
                               }}
                               required
                             >
-                              {["UK", "USA", "Canada"].map((country) => (
+                              {["Canada", "USA", "UK"].map((country) => (
                                 <Option key={country} value={country}>
                                   {country}
                                 </Option>

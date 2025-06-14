@@ -11,8 +11,13 @@ const {
 } = require("../controllers/destinationController");
 const { upload, uploadToS3 } = require("../middleware/imageUpload");
 const { protect, isAdmin } = require("../middleware/authMiddleware");
+
+// Public routes
 router.get("/destinations", getDestinations);
 router.get("/dropdown-destionation", getDestinationDropdown);
+router.get("/destination-filter", getFilterDealsByDestination);
+
+// Protected routes
 router.post("/", protect, isAdmin, upload.single("images"), addDestination);
 router.put(
   "/:id",
@@ -28,5 +33,5 @@ router.delete(
   isAdmin,
   deleteDestinationImage
 );
-router.get("/destination-filter", getFilterDealsByDestination);
+
 module.exports = router;

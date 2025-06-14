@@ -70,7 +70,7 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
 
     // Set country from session if available
-    const userCountry = req.session.country || "UK";
+    const userCountry = req.session.country || "Canada";
 
     const token = jwt.sign(
       { id: user._id, role: user.role, country: userCountry }, // Store country in token

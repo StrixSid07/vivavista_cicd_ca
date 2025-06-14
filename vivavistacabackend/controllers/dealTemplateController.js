@@ -117,7 +117,7 @@ exports.generateDealsTemplate = async (req, res) => {
     const hotelOptions = hotels.map((h) => h.name).join(",");
     const boardBasisOptions = boardBasisList.map((b) => b.name).join(",");
     const boolOptions = ["TRUE", "FALSE"];
-    const availableCountryOptions = ["UK", "USA", "Canada"];
+    const availableCountryOptions = ["Canada", "USA", "UK"];
 
     // Setup main sheet columns
     mainSheet.columns = [
@@ -859,7 +859,7 @@ exports.generateDealPricesTemplate = async (req, res) => {
     ]);
 
     // Static countries
-    const countryOptions = ["UK", "USA", "Canada"];
+    const countryOptions = ["Canada", "USA", "UK"];
 
     // Fill References sheet
     refSheet.getRow(1).values = ["DealTitle", "DealId"];
@@ -1586,7 +1586,7 @@ exports.uploadPriceOnly = async (req, res) => {
           
           // Create the price object with all required fields
           const priceObj = {
-            country: "UK", // Default to UK per requirements
+            country: "Canada", // Default to Canada per requirements
             airport: [new mongoose.Types.ObjectId(resolvedAirportId)],
             // Hotel is now optional - we'll add it if deal has hotels, otherwise omit
             ...(deal.hotels && deal.hotels.length > 0 ? { hotel: new mongoose.Types.ObjectId(deal.hotels[0]) } : {}),

@@ -435,6 +435,12 @@ const getAllDealsAdmin = async (req, res) => {
 // ✅ Get a Single Deal (Only If Available in User's Selected Country)
 const getDealById = async (req, res) => {
   try {
+    console.log(`Fetching deal with ID: ${req.params.id}`);
+    
+    if (!req.params.id || !req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid deal ID format" });
+    }
+    
     const deal = await Deal.findById(req.params.id)
       .populate("destination")
       .populate({
@@ -466,6 +472,8 @@ const getDealById = async (req, res) => {
       return res.status(404).json({ message: "Deal not found" });
     }
 
+    console.log(`Found deal: ${deal.title}`);
+    
     const today = new Date();
     const threeDaysFromNow = new Date(today);
     threeDaysFromNow.setDate(today.getDate() + 3);
@@ -487,11 +495,15 @@ const getDealById = async (req, res) => {
       }
     }
 
+    // For development and testing, don't restrict by country
+    // In production, uncomment the country restriction if needed
     const isAdmin = req.user?.role === "admin";
     let finalPrices = expandedPrices;
 
+    // Remove country restriction for now to fix the issue
+    /*
     if (!isAdmin) {
-      const userCountry = req.session?.country || "UK";
+      const userCountry = req.session?.country || "Canada";
 
       if (!deal.availableCountries.includes(userCountry)) {
         return res.status(403).json({
@@ -504,16 +516,18 @@ const getDealById = async (req, res) => {
         return p.country === userCountry && start > threeDaysFromNow;
       });
     }
+    */
 
     // ✅ Sort prices by earliest startdate
     finalPrices.sort((a, b) => new Date(a.startdate) - new Date(b.startdate)); // 👈 FIXED field name
 
     deal.prices = finalPrices;
 
+    console.log(`Returning deal with ${finalPrices.length} price options`);
     res.json(deal);
   } catch (error) {
     console.error("Error fetching deal by ID:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "Server error", error: error.toString() });
   }
 };
 
@@ -730,10 +744,10 @@ const getDealsByDestination = async (req, res) => {
   }
 };
 
-// ✅ Search Deals with Filters (Airport, Destination, Date)
+// ✅ Search Deals with Filters (Airport, Destination, Nights)
 const searchDeals = async (req, res) => {
   try {
-    const { airport, destination, date } = req.query;
+    const { airport, destination, nights } = req.query;
 
     let query = {};
 
@@ -748,10 +762,15 @@ const searchDeals = async (req, res) => {
       ];
     }
 
-    // ✅ If Date is Provided, Ensure Availability (Future Feature)
-    if (date) {
-      // Placeholder for future availability filter (if dates are stored)
-      console.log("Filtering deals for date:", date);
+    // ✅ Filter by Nights (if provided)
+    if (nights) {
+      if (nights === "10+") {
+        // If nights is 10+, filter for deals with 10 or more days
+        query["days"] = { $gte: 10 };
+      } else {
+        // Otherwise filter for the exact number of nights
+        query["days"] = parseInt(nights, 10);
+      }
     }
 
     // ✅ Fetch Deals with Filters
@@ -759,7 +778,7 @@ const searchDeals = async (req, res) => {
       .populate("destination", "name")
       .populate("destinations", "name")
       .populate("hotels", "name tripAdvisorRating facilities location")
-      .select("title prices boardBasis distanceToCenter distanceToBeach destinations")
+      .select("title prices boardBasis distanceToCenter distanceToBeach destinations days")
       .limit(50)
       .lean();
 

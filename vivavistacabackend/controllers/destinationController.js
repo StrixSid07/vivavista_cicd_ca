@@ -138,16 +138,71 @@ exports.getFilterDealsByDestination = async (req, res) => {
         .json({ message: "Destination name cannot be empty" });
     }
 
-    // Case-insensitive search
+    console.log(`Looking for destination with name: ${name}`);
+
+    // Case-insensitive search with more flexible matching
     const destination = await Destination.findOne({
       name: { $regex: new RegExp(`^${name}$`, "i") },
     });
 
+    // If not found with exact match, try a more flexible search
     if (!destination) {
-      return res
-        .status(404)
-        .json({ message: `Destination '${name}' not found` });
+      console.log(`Exact match not found for '${name}', trying partial match`);
+      const partialMatch = await Destination.findOne({
+        name: { $regex: new RegExp(name, "i") },
+      });
+      
+      if (!partialMatch) {
+        return res
+          .status(404)
+          .json({ message: `Destination '${name}' not found` });
+      }
+      
+      console.log(`Found partial match: ${partialMatch.name}`);
+      
+      // Use the partial match
+      const deals = await Deal.find({
+        $or: [
+          { destination: partialMatch._id },
+          { destinations: partialMatch._id }
+        ]
+      })
+        .select("title destination images days prices tag isTopDeal isHotdeal destinations")
+        .populate("holidaycategories", "name")
+        .populate("boardBasis", "name")
+        .populate("prices.hotel", "tripAdvisorRating tripAdvisorReviews")
+        .populate("destination", "name")
+        .populate("destinations", "name");
+
+      // Clean up prices array
+      const cleanedDeals = deals.map((deal) => {
+        const cleanedPrices = deal.prices.map((price) => ({
+          _id: price._id,
+          price: price.price,
+          hotel: price.hotel,
+        }));
+
+        return {
+          _id: deal._id,
+          title: deal.title,
+          destination: deal.destination,
+          destinations: deal.destinations,
+          images: deal.images,
+          days: deal.days,
+          prices: cleanedPrices,
+          boardBasis: deal.boardBasis,
+          tag: deal.tag,
+          isTopDeal: deal.isTopDeal,
+          isHotdeal: deal.isHotdeal,
+          holidaycategories: deal.holidaycategories,
+        };
+      });
+
+      console.log(`Returning ${cleanedDeals.length} deals for partial match`);
+      return res.status(200).json(cleanedDeals);
     }
+
+    console.log(`Found destination: ${destination.name} (${destination._id})`);
 
     // Fetch deals where the destination is either:
     // 1. The primary destination, OR
@@ -189,9 +244,10 @@ exports.getFilterDealsByDestination = async (req, res) => {
       };
     });
 
+    console.log(`Returning ${cleanedDeals.length} deals for destination ${destination.name}`);
     res.status(200).json(cleanedDeals);
   } catch (error) {
     console.error("Error in getFilterDealsByDestination:", error);
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.toString() });
   }
 };

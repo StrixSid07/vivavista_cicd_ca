@@ -55,7 +55,7 @@ const seedData = async () => {
                 destination: destinationMap['Maldives'],
                 prices: [
                     {
-                        country: 'UK',
+                        country: 'Canada',
                         airport: 'LHR',
                         hotel: hotelMap['Luxury Beach Resort'],
                         date: new Date('2025-06-15'),
@@ -76,7 +76,7 @@ const seedData = async () => {
                 title: 'Dubai City Break',
                 description: 'Explore Dubai with a 4-night stay in a luxury downtown hotel.',
                 images: ['dubai-deal.jpg'],
-                availableCountries: ['UK', 'USA'],
+                availableCountries: ['Canada', 'USA'],
                 destination: destinationMap['Dubai'],
                 prices: [
                     {

@@ -256,7 +256,7 @@ const TravelFilter = () => {
               <input
                 type="range"
                 min="129"
-                max="10000"
+                max="500"
                 step="1"
                 value={filters.price}
                 onChange={(e) =>

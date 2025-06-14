@@ -9,8 +9,10 @@ import {
   Hotel,
   Flame,
   Sparkles,
+  Share2,
 } from "lucide-react";
-import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
+import { FaStar, FaStarHalfAlt, FaRegStar, FaWhatsapp, FaFacebook, FaCopy } from "react-icons/fa";
+import { MdEmail } from "react-icons/md";
 import { Base_Url } from "../../utils/Api";
 import SimilarDealsSlider from "../elements/SimilarDealsSlider";
 import { LeadContext } from "../../contexts/LeadContext";
@@ -38,6 +40,9 @@ const FilterPage = () => {
   const { setLeadPrice } = useContext(LeadContext);
   const [lowDepositOpen, setLowDepositOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const shareUrl = window.location.href;
 
   const renderStars = () => {
     const stars = [];
@@ -88,6 +93,8 @@ const FilterPage = () => {
 
   useEffect(() => {
     if (!id) return;
+    setLoading(true);
+    
     axios
       .get(`${Base_Url}/deals/${id}`)
       .then((res) => {
@@ -195,13 +202,13 @@ const FilterPage = () => {
           setSelectedAirport(airportId);
           setLeadPrice(cheapestPriceObj.price);
         }
-
+        
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Error fetching data:", err);
-        alert("This deal is no longer available."); // Show an alert
-        navigate("/"); // Redirect to home page
+        console.error("Error fetching deal data:", err);
+        setLoading(false);
+        // Don't redirect automatically, just show an error message in the component
       });
   }, [id, navigate, setLeadPrice]);
 
@@ -239,6 +246,13 @@ const FilterPage = () => {
   const switchToPriceCalendarTab = useCallback(() => {
     setActiveTab("price-calendar");
   }, []);
+
+  // Function to handle copying the URL
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
 
   if (loading)
     return (
@@ -306,6 +320,15 @@ const FilterPage = () => {
                     <CalendarCheck className="w-4 h-4 text-green-600" />
                     {tripData.days || 0} Nights
                   </div>
+                  
+                  {/* Share Button */}
+                  <button 
+                    onClick={() => setShowShareModal(true)}
+                    className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Share This Deal
+                  </button>
                 </div>
               </div>
 
@@ -341,7 +364,17 @@ const FilterPage = () => {
                     <Tag className="w-6 h-7 text-purple-500" />
                     {tripData.tag || "General Package"}
                   </div>
+                  
+                  {/* Mobile Share Button */}
+                  <button 
+                    onClick={() => setShowShareModal(true)}
+                    className="flex items-center gap-2 text-base text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    <Share2 className="w-6 h-6" />
+                    Share This Deal
+                  </button>
                 </div>
+
                 {/* Rating Section */}
                 <div className="flex-1 flex md:hidden flex-col md:mt-8 mt-4 md:items-end gap-1">
                   <div className="flex items-center gap-1">
@@ -511,6 +544,70 @@ const FilterPage = () => {
           />
         </div>
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="relative bg-white rounded-xl max-w-md w-full p-6 shadow-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-blue-500">Share With Friends</h2>
+              <button 
+                onClick={() => setShowShareModal(false)}
+                className="text-gray-500 hover:text-gray-800"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">Sharing link</p>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="text" 
+                  value={shareUrl} 
+                  readOnly 
+                  className="flex-1 border rounded-md px-3 py-2 text-sm bg-gray-50"
+                />
+                <button 
+                  onClick={handleCopyLink}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md flex items-center gap-1"
+                >
+                  <FaCopy size={16} />
+                  {copySuccess ? "Copied!" : "Copy Link"}
+                </button>
+              </div>
+            </div>
+            
+            <p className="text-sm text-gray-600 mb-2">Or share on</p>
+            <div className="flex justify-center gap-4">
+              <a 
+                href={`https://wa.me/?text=${encodeURIComponent(`Check out this amazing deal: ${tripData.title} ${shareUrl}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-full"
+              >
+                <FaWhatsapp size={24} />
+              </a>
+              <a 
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full"
+              >
+                <FaFacebook size={24} />
+              </a>
+              <a 
+                href={`mailto:?subject=Check out this amazing deal: ${encodeURIComponent(tripData.title)}&body=${encodeURIComponent(`I found this amazing deal and thought you might be interested: ${shareUrl}`)}`}
+                className="bg-red-500 hover:bg-red-600 text-white p-3 rounded-full"
+              >
+                <MdEmail size={24} />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -59,7 +59,7 @@ router.post("/set-country", (req, res) => {
  *                   example: "UK"
  */
 router.get("/get-country", (req, res) => {
-  res.json({ country: req.session.country || "UK" });
+  res.json({ country: req.session.country || "Canada" });
 });
 
 module.exports = router;

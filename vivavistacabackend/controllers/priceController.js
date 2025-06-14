@@ -352,7 +352,7 @@ const getPriceFormData = async (req, res) => {
     res.json({
       hotels,
       airports,
-      countries: ["UK", "USA", "Canada"]
+      countries: ["Canada", "USA", "UK"]
     });
   } catch (error) {
     console.error("Error fetching price form data:", error);

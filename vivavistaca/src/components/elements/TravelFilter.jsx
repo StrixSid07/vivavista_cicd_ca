@@ -251,7 +251,7 @@ const TravelFilter = () => {
                 variant="paragraph"
                 className="text-green-500 font-semibold mb-2 customfontstitle"
               >
-                Price: £{filters.price}
+                Price: ${filters.price}
               </Typography>
               <input
                 type="range"
@@ -449,7 +449,7 @@ const TravelFilter = () => {
                     {/* Price & Button Section */}
                     <div className="w-full md:w-1/5 flex flex-col bg-gray-100 justify-center items-center gap-2 p-3 md:p-4">
                       <Typography className="text-center font-semibold text-green-500 customfontstitle">
-                        £{item.prices[0]?.price || "N/A"} per person
+                        ${item.prices[0]?.price || "N/A"} per person
                       </Typography>
                       <Button
                         color="green"

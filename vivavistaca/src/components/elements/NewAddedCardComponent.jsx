@@ -15,6 +15,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { CalendarDays, MapPin, Tag } from "lucide-react";
+import { formatImageUrl } from "../../utils/Api";
 
 const NewAddedCardComponent = ({
   id,
@@ -37,6 +38,9 @@ const NewAddedCardComponent = ({
   const handleViewDetails = () => {
     navigate(`/deals/${id}`);
   };
+
+  // Format all images with proper URLs
+  const formattedImages = images.map(img => formatImageUrl(img));
 
   // Function to format destinations for display
   const formatDestinations = () => {
@@ -79,7 +83,7 @@ const NewAddedCardComponent = ({
             <AnimatePresence mode="wait">
               <motion.img
                 key={currentImage}
-                src={images[currentImage]}
+                src={formattedImages[currentImage]}
                 alt="Tour Destination"
                 initial={{ opacity: 0, x: 100 }}
                 animate={{ opacity: 1, x: 0 }}

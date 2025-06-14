@@ -1,5 +1,5 @@
 const Autoslider = require("../models/Autoslider");
-const { uploadToS3, deleteFromS3 } = require("../middleware/imageUpload");
+const { processUploadedFile, deleteImage } = require("../middleware/imageUpload");
 require("dotenv").config();
 
 // Get all autosliders
@@ -45,15 +45,8 @@ exports.createAutoslider = async (req, res) => {
       return res.status(400).json({ message: "Image is required" });
     }
     
-    // Upload image to S3 or local storage
-    const IMAGE_STORAGE = process.env.IMAGE_STORAGE || "local";
-    let imageUrl = "";
-    
-    if (IMAGE_STORAGE === "s3") {
-      imageUrl = await uploadToS3(req.file);
-    } else {
-      imageUrl = `/uploads/${req.file.filename}`;
-    }
+    // Process and upload image
+    let imageUrl = await processUploadedFile(req.file, 'autoslider');
     
     // Create new autoslider
     const autoslider = new Autoslider({
@@ -88,21 +81,13 @@ exports.updateAutoslider = async (req, res) => {
     
     // Handle image update if provided
     if (req.file) {
-      const IMAGE_STORAGE = process.env.IMAGE_STORAGE || "local";
-      let imageUrl = "";
-      
-      if (IMAGE_STORAGE === "s3") {
-        // Delete old image from S3 if exists
-        if (autoslider.image && autoslider.image.startsWith("http")) {
-          await deleteFromS3(autoslider.image);
-        }
-        
-        // Upload new image
-        imageUrl = await uploadToS3(req.file);
-      } else {
-        imageUrl = `/uploads/${req.file.filename}`;
+      // Delete old image if exists
+      if (autoslider.image) {
+        await deleteImage(autoslider.image);
       }
       
+      // Process and upload new image
+      const imageUrl = await processUploadedFile(req.file, 'autoslider');
       autoslider.image = imageUrl;
     }
     
@@ -124,9 +109,9 @@ exports.deleteAutoslider = async (req, res) => {
       return res.status(404).json({ message: "Autoslider not found" });
     }
     
-    // Delete image from S3 if exists
-    if (autoslider.image && autoslider.image.startsWith("http")) {
-      await deleteFromS3(autoslider.image);
+    // Delete image if exists
+    if (autoslider.image) {
+      await deleteImage(autoslider.image);
     }
     
     await Autoslider.findByIdAndDelete(id);
@@ -153,18 +138,15 @@ exports.deleteAutosliderImage = async (req, res) => {
     
     console.log("Current image URL:", autoslider.image);
     
-    // Check if there's an image to delete from S3
+    // Check if there's an image to delete
     if (autoslider.image) {
-      // If it's an S3 URL, delete from S3
-      if (autoslider.image.startsWith("http")) {
-        try {
-          console.log("Attempting to delete from S3:", autoslider.image);
-          await deleteFromS3(autoslider.image);
-          console.log("Successfully deleted from S3");
-        } catch (s3Error) {
-          console.error("Error deleting from S3:", s3Error);
-          // Continue even if S3 deletion fails
-        }
+      try {
+        console.log("Attempting to delete image:", autoslider.image);
+        await deleteImage(autoslider.image);
+        console.log("Successfully deleted image");
+      } catch (error) {
+        console.error("Error deleting image:", error);
+        // Continue even if deletion fails
       }
     } else {
       console.log("No image URL found, but continuing with database update");

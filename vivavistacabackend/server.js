@@ -59,7 +59,15 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Serve static files with proper CORS headers
+app.use("/uploads", (req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  next();
+}, express.static(path.join(__dirname, "uploads")));
+
 // ✅ Configure Sessions
 app.use(
   session({
@@ -112,13 +120,18 @@ const cacheMiddleware = async (req, res, next) => {
 };
 app.use("/api/deals", cacheMiddleware);
 
+// Test route for image access
+app.get('/test-image', (req, res) => {
+  res.sendFile(path.join(__dirname, 'test-image.html'));
+});
+
 // ✅ Initialize Swagger Docs
 swaggerDocs(app);
 
 // ✅ Auto-detect whether running locally or on the server
 const isLocal = process.env.NODE_ENV === "development";
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5003;
 
 if (isLocal) {
   console.log("🚀 ~ isLocal:", isLocal);
@@ -148,5 +161,5 @@ if (isLocal) {
 }
 
 // ✅ Start Cron Job for Hotel Ratings Update
-const updateHotelRatings = require("./cron/hotelUpdater");
-updateHotelRatings();
+// const updateHotelRatings = require("./cron/hotelUpdater");
+// updateHotelRatings();

@@ -1,7 +1,7 @@
 const Destination = require("../models/Destination");
 const Deal = require("../models/Deal");
 
-const { uploadToS3, deleteFromS3 } = require("../middleware/imageUpload");
+const { processUploadedFile, deleteImage } = require("../middleware/imageUpload");
 require("dotenv").config();
 exports.getDestinations = async (req, res) => {
   try {
@@ -35,8 +35,8 @@ exports.deleteDestinationImage = async (req, res) => {
 
     const imageUrl = destination.image;
 
-    // Optional: Delete from S3 or any cloud storage
-    await deleteFromS3(imageUrl);
+    // Delete image from storage
+    await deleteImage(imageUrl);
 
     // Remove image URL from MongoDB
     destination.image = "";
@@ -58,13 +58,9 @@ exports.addDestination = async (req, res) => {
     }
     let imageUrl = "";
 
-    const IMAGE_STORAGE = process.env.IMAGE_STORAGE || "local";
     if (req.file) {
-      if (IMAGE_STORAGE === "s3") {
-        imageUrl = await uploadToS3(req.file); // Assuming this returns a string URL
-      } else {
-        imageUrl = `/uploads/${req.file.filename}`;
-      }
+      // Process and convert image to WebP
+      imageUrl = await processUploadedFile(req.file, 'destination');
     }
 
     const destination = new Destination({
@@ -92,13 +88,9 @@ exports.updateDestination = async (req, res) => {
     }
     let imageUrl = "";
 
-    const IMAGE_STORAGE = process.env.IMAGE_STORAGE || "local";
     if (req.file) {
-      if (IMAGE_STORAGE === "s3") {
-        imageUrl = await uploadToS3(req.file); // Assuming this returns a string URL
-      } else {
-        imageUrl = `/uploads/${req.file.filename}`;
-      }
+      // Process and convert image to WebP
+      imageUrl = await processUploadedFile(req.file, 'destination');
     }
 
     if (name) destination.name = name;

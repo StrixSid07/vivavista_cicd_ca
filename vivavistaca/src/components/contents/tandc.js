@@ -565,8 +565,8 @@ const tandc = [
           {
             paragraph: "(c) Administration Fee",
             sublist: [
-              "• £50 per person for changes made 60 days or more before departure.",
-              "• £75 per person for changes made less than 60 days before departure.",
+              "• $50 per person for changes made 60 days or more before departure.",
+              "• $75 per person for changes made less than 60 days before departure.",
               "• Changes within 7 days of departure will be subject to 100% cancellation charges.",
             ],
           },

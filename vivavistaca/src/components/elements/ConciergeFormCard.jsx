@@ -216,7 +216,7 @@ const ConciergeFormCard = ({
           </Typography>
 
           <Typography className="text-sm font-semibold text-blue-700 customfontstitle">
-            <span className="font-bold">Total:</span> £{totalPrice}
+            <span className="font-bold">Total:</span> ${totalPrice}
           </Typography>
         </div>
       </div>

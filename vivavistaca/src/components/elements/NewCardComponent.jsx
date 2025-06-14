@@ -16,6 +16,7 @@ import {
 } from "react-icons/fa";
 import { MdOutlineArrowBackIos, MdOutlineArrowForwardIos } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatImageUrl } from "../../utils/Api";
 
 const NewCardComponent = ({
   images,
@@ -31,6 +32,9 @@ const NewCardComponent = ({
   prevImage,
   tag,
 }) => {
+  // Format all images with proper URLs
+  const formattedImages = images.map(img => formatImageUrl(img));
+  
   return (
     <Card className="max-w-[24rem] w-full overflow-hidden h-[30rem]">
       <CardHeader
@@ -43,7 +47,7 @@ const NewCardComponent = ({
           <AnimatePresence mode="wait">
             <motion.img
               key={currentImage}
-              src={images[currentImage]}
+              src={formattedImages[currentImage]}
               alt="Property"
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
@@ -79,7 +83,7 @@ const NewCardComponent = ({
           {name}
         </Typography>
         <Typography variant="h6" color="gray" className="mt-2">
-          ${price.toLocaleString()}
+          £{price.toLocaleString()}
         </Typography>
         <div className="flex items-center text-sm text-gray-500 mt-2">
           <FaMapMarkerAlt className="mr-1" /> {address}

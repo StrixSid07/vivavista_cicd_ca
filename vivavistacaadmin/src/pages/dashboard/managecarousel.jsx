@@ -11,6 +11,7 @@ import {
 } from "@material-tailwind/react";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 import axios from "@/utils/axiosInstance";
+import { formatImageUrl } from "@/utils/api";
 
 export function ManageCarousel() {
   const [carousels, setCarousels] = useState([]);
@@ -186,7 +187,7 @@ export function ManageCarousel() {
                   {carousel.images.map((image, index) => (
                     <img
                       key={index}
-                      src={image}
+                      src={formatImageUrl(image)}
                       alt={`Carousel Image ${index + 1}`}
                       className="h-48 w-96 rounded-md object-cover shadow-md transition-all duration-500 ease-in-out"
                     />

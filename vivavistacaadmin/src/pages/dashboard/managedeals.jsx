@@ -1366,7 +1366,7 @@ export const ManageDeals = () => {
                             )}
                             {price.price > 0 && (
                               <span className="ml-2 font-bold">
-                                £{price.price}
+                                ${price.price}
                               </span>
                             )}
                           </div>

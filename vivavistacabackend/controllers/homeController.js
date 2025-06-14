@@ -3,7 +3,7 @@ const Destination = require("../models/Destination");
 const Review = require("../models/Review");
 const Blog = require("../models/Blog");
 const Newsletter = require("../models/Newsletter");
-const { uploadToS3, deleteFromS3 } = require("../middleware/imageUpload");
+const { processUploadedFile, deleteImage } = require("../middleware/imageUpload");
 require("dotenv").config();
 const validator = require("validator");
 
@@ -89,14 +89,11 @@ exports.addBlog = async (req, res) => {
   try {
     let imageUrl = "";
 
-    const IMAGE_STORAGE = process.env.IMAGE_STORAGE || "local";
     if (req.file) {
-      if (IMAGE_STORAGE === "s3") {
-        imageUrl = await uploadToS3(req.file); // Assuming this returns a string URL
-      } else {
-        imageUrl = `/uploads/${req.file.filename}`;
-      }
+      // Process and convert image to WebP
+      imageUrl = await processUploadedFile(req.file, 'blog');
     }
+    
     const blog = new Blog({
       title,
       content,
@@ -120,13 +117,9 @@ exports.updateBlog = async (req, res) => {
     }
     let imageUrl = "";
 
-    const IMAGE_STORAGE = process.env.IMAGE_STORAGE || "local";
     if (req.file) {
-      if (IMAGE_STORAGE === "s3") {
-        imageUrl = await uploadToS3(req.file); // Assuming this returns a string URL
-      } else {
-        imageUrl = `/uploads/${req.file.filename}`;
-      }
+      // Process and convert image to WebP
+      imageUrl = await processUploadedFile(req.file, 'blog');
     }
 
     if (title) blog.title = title;
@@ -260,13 +253,13 @@ exports.deleteBlogImage = async (req, res) => {
     const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      return res.status(404).json({ message: "Destination not found" });
+      return res.status(404).json({ message: "Blog not found" });
     }
 
     const imageUrl = blog.image;
 
-    // Optional: Delete from S3 or any cloud storage
-    await deleteFromS3(imageUrl);
+    // Delete image from storage
+    await deleteImage(imageUrl);
 
     // Remove image URL from MongoDB
     blog.image = "";

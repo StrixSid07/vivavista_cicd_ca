@@ -7,6 +7,7 @@ import {
   Typography,
   IconButton,
 } from "@material-tailwind/react";
+import { formatImageUrl } from "../../utils/Api";
 
 const AccommodationCard = ({ hotel }) => {
   const rating = hotel.tripAdvisorRating;
@@ -15,6 +16,10 @@ const AccommodationCard = ({ hotel }) => {
 
   const openDrawer = () => setDrawerOpen(true);
   const closeDrawer = () => setDrawerOpen(false);
+
+  // Format all hotel images
+  const formattedImages = hotel.images?.map(img => formatImageUrl(img)) || [];
+  const formattedTripAdvisorPhotos = hotel.tripAdvisorPhotos?.map(img => formatImageUrl(img)) || [];
 
   const renderStars = () => {
     const stars = [];
@@ -173,8 +178,8 @@ const AccommodationCard = ({ hotel }) => {
           )}
 
           {/* Images */}
-          {(hotel.images?.length > 0 ||
-            hotel.tripAdvisorPhotos?.length > 0) && (
+          {(formattedImages.length > 0 ||
+            formattedTripAdvisorPhotos.length > 0) && (
             <section className="mb-4">
               <Typography
                 variant="h6"
@@ -184,8 +189,8 @@ const AccommodationCard = ({ hotel }) => {
               </Typography>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  ...(hotel.images || []),
-                  ...(hotel.tripAdvisorPhotos || []),
+                  ...formattedImages,
+                  ...formattedTripAdvisorPhotos,
                 ].map((img, idx) => (
                   <img
                     key={idx}
@@ -255,7 +260,7 @@ const AccommodationCard = ({ hotel }) => {
                 href={hotel.tripAdvisorLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-500 text-sm hover:underline customfontstitle"
+                className="text-blue-500 text-sm hover:underline"
               >
                 View on TripAdvisor
               </a>

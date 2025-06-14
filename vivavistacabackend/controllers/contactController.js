@@ -426,7 +426,7 @@ exports.notifyAdminOfNewBooking = async (req, res) => {
           <p><strong>🛫 Departure Airport:</strong> ${airport || "N/A"}</p>
           <p><strong>📅 Selected Date:</strong> ${selectedDate || "N/A"}</p>
           <p><strong>👥 Adults:</strong> ${pax}</p>
-          <p><strong>💰 Total Price:</strong> £${totalPrice}</p>
+          <p><strong>💰 Total Price:</strong> $${totalPrice}</p>
 
           <hr style="border: none; border-top: 1px solid #ccc;" />
           <p style="color: #888; font-size: 0.9em;">This notification was generated automatically.</p>

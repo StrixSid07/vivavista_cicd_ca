@@ -594,7 +594,7 @@ export const ManagePrices = () => {
                           <div className="text-gray-500">to {formatDate(price.enddate)}</div>
                         </div>
                       </td>
-                      <td className="p-3 font-semibold">£{price.price}</td>
+                      <td className="p-3 font-semibold">${price.price}</td>
                       <td className="p-3">
                         <div className="text-sm">
                           {Array.isArray(price.airport) 
@@ -730,7 +730,7 @@ export const ManagePrices = () => {
             </div>
 
             <Input
-              label="Price (£)"
+              label="Price ($)"
               type="number"
               value={formData.price}
               onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}

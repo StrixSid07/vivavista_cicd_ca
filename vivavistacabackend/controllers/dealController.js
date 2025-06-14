@@ -3,8 +3,7 @@ const mongoose = require("mongoose");
 const Airport = require("../models/Airport");
 const Hotel = require("../models/Hotel");
 const Destination = require("../models/Destination");
-const IMAGE_STORAGE = process.env.IMAGE_STORAGE || "local";
-const { uploadToS3, deleteFromS3 } = require("../middleware/imageUpload");
+const { processUploadedFile, deleteImage } = require("../middleware/imageUpload");
 
 // Maximum number of featured deals allowed
 const MAX_FEATURED_DEALS = 21;
@@ -153,11 +152,10 @@ const createDeal = async (req, res) => {
     // Extract image URLs
     let imageUrls = [];
     if (req.files && req.files.length) {
-      if (process.env.IMAGE_STORAGE === "s3") {
-        imageUrls = await Promise.all(req.files.map((f) => uploadToS3(f)));
-      } else {
-        imageUrls = req.files.map((f) => `/uploads/${f.filename}`);
-      }
+      // Process each uploaded file and convert to WebP
+      imageUrls = await Promise.all(
+        req.files.map((file) => processUploadedFile(file, 'deal'))
+      );
     }
 
     // Create deal
@@ -564,13 +562,10 @@ const updateDeal = async (req, res) => {
     // Extract image URLs from the request
     let imageUrls = [];
     if (req.files && req.files.length > 0) {
-      if (IMAGE_STORAGE === "s3") {
-        imageUrls = await Promise.all(
-          req.files.map((file) => uploadToS3(file))
-        );
-      } else {
-        imageUrls = req.files.map((file) => `/uploads/${file.filename}`);
-      }
+      // Process each uploaded file and convert to WebP
+      imageUrls = await Promise.all(
+        req.files.map((file) => processUploadedFile(file, 'deal'))
+      );
     }
 
     // Validate itinerary if provided
@@ -682,30 +677,7 @@ const deleteDealImage = async (req, res) => {
     console.log("Deleting deal image:", imageUrl);
     
     // Delete the image file from storage
-    if (IMAGE_STORAGE === "s3") {
-      // Only call deleteFromS3 for S3 storage
-      await deleteFromS3(imageUrl);
-    } else {
-      // For local storage, try to delete the file from the filesystem
-      try {
-        const fs = require('fs');
-        const path = require('path');
-        
-        // Extract the file path from the URL
-        const filePath = path.join(process.cwd(), imageUrl);
-        
-        // Check if the file exists before attempting to delete
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.log("Local image file deleted successfully");
-        } else {
-          console.log("Local image file not found:", filePath);
-        }
-      } catch (fileError) {
-        console.log("Error deleting local file:", fileError);
-        // Continue even if file deletion fails
-      }
-    }
+    await deleteImage(imageUrl);
 
     // Remove image URL from MongoDB
     await Deal.findByIdAndUpdate(dealId, {

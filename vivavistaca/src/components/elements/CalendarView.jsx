@@ -242,7 +242,7 @@ const CalendarView = ({
               <div className="font-medium">{day.day}</div>
               {day.info && (
                 <div className="mt-1 flex flex-col justify-center  items-center">
-                  <div className="text-xs font-normal">£{day.info.price}</div>
+                  <div className="text-xs font-normal">${day.info.price}</div>
                   <div className="text-[0.68rem]">{day.info.airport?.code}</div>
                   {day.info &&
                     priceswitchDates.get(
@@ -292,7 +292,7 @@ const CalendarView = ({
                 <div className="mt-1 flex flex-col items-center space-y-1">
                   {day.info.map((info, idx) => (
                     <div key={idx} className="text-xs text-white">
-                      £{info.price}{" "}
+                      ${info.price}{" "}
                       <span className="text-[0.6rem]">
                         ({info.airport?.code})
                       </span>

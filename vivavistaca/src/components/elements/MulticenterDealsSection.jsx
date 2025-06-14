@@ -12,47 +12,54 @@ import {
   MdOutlineArrowBackIos,
   MdOutlineArrowForwardIos,
 } from "react-icons/md";
+import { formatImageUrl } from "../../utils/Api";
 
-// Helper function to format destination text with multicenter support
+// Function to format destination text for display
 const formatDestinationText = (primaryDestination, additionalDestinations) => {
-  if (!additionalDestinations || !additionalDestinations.length) return primaryDestination;
+  if (!additionalDestinations || additionalDestinations.length === 0) {
+    return primaryDestination || "Unknown Location";
+  }
+
+  const destinations = additionalDestinations.map(dest => dest.name);
   
-  // Get the name of the primary destination
-  let result = primaryDestination;
+  // Combine primary destination with additional destinations
+  const allDestinations = primaryDestination 
+    ? [primaryDestination, ...destinations] 
+    : destinations;
   
-  // Add the multicenter destinations with comma separator
-  const multiDestinations = additionalDestinations.map(dest => dest.name).join(", ");
-  
-  if (multiDestinations) {
-    // Combine with comma
-    const combined = `${result}, ${multiDestinations}`;
-    
-    // If the combined string is too long, truncate it
-    if (combined.length > 40) {
-      return `${result}, ${multiDestinations.substring(0, 25)}...`;
+  // If we have multiple destinations, format them nicely
+  if (allDestinations.length > 1) {
+    // If there are many destinations, truncate the list
+    if (allDestinations.length > 2) {
+      return `${allDestinations[0]}, ${allDestinations[1]} +${allDestinations.length - 2}`;
     }
-    return combined;
+    // Just two destinations
+    return allDestinations.join(" & ");
   }
   
-  return result;
+  // Just one destination
+  return allDestinations[0] || "Unknown Location";
 };
 
 const MulticenterCard = ({ deal, index, currentImage, nextImage, prevImage }) => {
   const navigate = useNavigate();
   
+  // Format images with proper URLs
+  const formattedImages = deal.images.map(img => formatImageUrl(img));
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-      className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col h-full border-2 border-amber-100 hover:border-amber-300 transition-all duration-300 hover:shadow-xl"
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-[400px] transform transition-transform hover:scale-[1.02] hover:shadow-xl"
     >
       {/* Card Image Section */}
       <div className="relative h-48 overflow-hidden">
         <div className="w-full h-full overflow-hidden">
           <motion.img
             key={currentImage}
-            src={deal.images[currentImage]}
+            src={formattedImages[currentImage]}
             alt={deal.title}
             initial={{ opacity: 0, scale: 1.2 }}
             animate={{ opacity: 1, scale: 1 }}

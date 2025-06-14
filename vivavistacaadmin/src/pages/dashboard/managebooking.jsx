@@ -635,7 +635,7 @@ export function ManageBooking() {
                     <Typography color="black">
                       Price:{" "}
                       {booking.selectedPrice?.price
-                        ? `£${booking.selectedPrice.price}`
+                        ? `$${booking.selectedPrice.price}`
                         : "N/A"}
                       / per person
                     </Typography>
@@ -644,7 +644,7 @@ export function ManageBooking() {
                     <Typography color="black" className="font-semibold">
                       Total:{" "}
                       {booking.selectedPrice?.price
-                        ? `£${booking.selectedPrice.price * booking.adults}`
+                        ? `$${booking.selectedPrice.price * booking.adults}`
                         : "N/A"}
                     </Typography>
 
@@ -1203,7 +1203,7 @@ export function ManageBooking() {
                         >
                           {airportDisplay} –{" "}
                           {new Date(price.startdate).toLocaleDateString()} →{" "}
-                          {new Date(price.enddate).toLocaleDateString()} (£
+                          {new Date(price.enddate).toLocaleDateString()} ($
                           {price.price})
                         </Option>
                       );
@@ -1562,7 +1562,7 @@ export function ManageBooking() {
                         >
                           {airportDisplay} –{" "}
                           {new Date(price.startdate).toLocaleDateString()} →{" "}
-                          {new Date(price.enddate).toLocaleDateString()} (£
+                          {new Date(price.enddate).toLocaleDateString()} ($
                           {price.price})
                         </Option>
                       );
@@ -1576,7 +1576,7 @@ export function ManageBooking() {
                     <Input label="Hotel" value={selectedPrice.hotel} readOnly />
                     <Input
                       label="Price"
-                      value={`£${selectedPrice.price}`}
+                      value={`$${selectedPrice.price}`}
                       readOnly
                     />
                     <Input

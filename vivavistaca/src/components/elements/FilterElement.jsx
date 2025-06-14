@@ -210,12 +210,12 @@ useEffect(() => {
       const priceElement = document.querySelector('.price-display');
       const totalPriceElement = document.querySelector('.total-price-display');
       
-      if (priceElement && priceElement.textContent !== `£${newPrice}`) {
-        priceElement.textContent = `£${newPrice}`;
+      if (priceElement && priceElement.textContent !== `$${newPrice}`) {
+        priceElement.textContent = `$${newPrice}`;
       }
       
-      if (totalPriceElement && totalPriceElement.textContent !== `£${newPrice * adultCount}`) {
-        totalPriceElement.textContent = `£${newPrice * adultCount}`;
+      if (totalPriceElement && totalPriceElement.textContent !== `$${newPrice * adultCount}`) {
+        totalPriceElement.textContent = `$${newPrice * adultCount}`;
       }
     });
   };
@@ -433,7 +433,7 @@ useEffect(() => {
           variant={isMobileView ? "h4" : "h3"}
           className="font-bold leading-tight text-white customfontstitle price-display"
         >
-          £{leadPrice}
+          ${leadPrice}
         </Typography>
         <Typography variant="small" className="text-white customfontstitle mt-1">
           per person
@@ -530,7 +530,7 @@ useEffect(() => {
             variant={isMobileView ? "h6" : "h5"}
             className="font-bold tracking-wide bg-transparent bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600 customfontstitle"
           >
-            £{totalPrice}
+            ${totalPrice}
           </Typography>
         </div>
       </CardBody>

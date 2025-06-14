@@ -1,108 +1,19 @@
-// const multer = require("multer");
-// const multerS3 = require("multer-s3");
-// const aws = require("aws-sdk");
-// const path = require("path");
-// const fs = require("fs-extra");
-// require("dotenv").config();
-
-// const IMAGE_STORAGE = process.env.IMAGE_STORAGE || "local";
-
-// // ✅ AWS S3 Configuration
-// const s3 = new aws.S3({
-//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-//   region: process.env.AWS_REGION,
-// });
-
-// // ✅ Local Storage Configuration
-// const localStorage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     const uploadPath = process.env.LOCAL_IMAGE_PATH || "uploads/";
-//     fs.ensureDirSync(uploadPath); // Ensure directory exists
-//     cb(null, uploadPath);
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, `${Date.now()}-${file.originalname}`);
-//   },
-// });
-
-// // ✅ S3 Storage Configuration
-// const s3Storage = multerS3({
-//   s3: s3,
-//   bucket: process.env.AWS_S3_BUCKET,
-//   acl: "public-read", // Make file publicly accessible
-//   contentType: multerS3.AUTO_CONTENT_TYPE,
-//   key: (req, file, cb) => {
-//     cb(null, `uploads/${Date.now()}-${file.originalname}`);
-//   },
-// });
-
-// // ✅ Choose Storage Method Based on ENV
-// const upload = multer({
-//   storage: IMAGE_STORAGE === "s3" ? s3Storage : localStorage,
-//   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB file size limit
-//   fileFilter: (req, file, cb) => {
-//     const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
-//     if (!allowedTypes.includes(file.mimetype)) {
-//       return cb(new Error("Only JPEG, PNG, and JPG formats are allowed"), false);
-//     }
-//     cb(null, true);
-//   },
-// });
-
-// module.exports = upload;
-
-// const multer = require("multer");
-// const path = require("path");
-// const fs = require("fs-extra");
-// require("dotenv").config();
-
-// // ✅ Local Storage Configuration
-// const uploadPath = process.env.LOCAL_IMAGE_PATH || "uploads/";
-// fs.ensureDirSync(uploadPath); // Ensure directory exists
-
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, uploadPath);
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, `${Date.now()}-${file.originalname}`);
-//   },
-// });
-
-// // ✅ Multer Upload Configuration
-// const upload = multer({
-//   storage: storage,
-//   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB file size limit
-//   fileFilter: (req, file, cb) => {
-//     const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
-//     if (!allowedTypes.includes(file.mimetype)) {
-//       return cb(
-//         new Error("Only JPEG, PNG, and JPG formats are allowed"),
-//         false
-//       );
-//     }
-//     cb(null, true);
-//   },
-// });
-
-// module.exports = upload;
-
 const multer = require("multer");
-const { S3Client ,DeleteObjectCommand} = require("@aws-sdk/client-s3");
-const { Upload } = require("@aws-sdk/lib-storage");
 const fs = require("fs-extra");
+const path = require("path");
+const { convertToWebP, deleteLocalImage, ensureUploadDirectories } = require("./imageProcessor");
 require("dotenv").config();
 
-const IMAGE_STORAGE = process.env.IMAGE_STORAGE || "local";
+// Ensure upload directories exist on server start
+ensureUploadDirectories().catch(err => {
+  console.error("Error creating upload directories:", err);
+});
 
-// ✅ Multer memory storage (for S3)
-const memoryStorage = multer.memoryStorage();
-
-// ✅ Local disk storage
+// ✅ Local disk storage configuration
 const localStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = process.env.LOCAL_IMAGE_PATH || "uploads/";
+    // Use a temporary directory for initial upload
+    const uploadPath = path.join(process.cwd(), 'uploads', 'temp');
     fs.ensureDirSync(uploadPath);
     cb(null, uploadPath);
   },
@@ -111,8 +22,9 @@ const localStorage = multer.diskStorage({
   },
 });
 
+// ✅ Multer upload configuration
 const upload = multer({
-  storage: IMAGE_STORAGE === "s3" ? memoryStorage : localStorage,
+  storage: localStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
@@ -126,54 +38,55 @@ const upload = multer({
   },
 });
 
-// ✅ S3 upload handler (to be used in controller)
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const uploadToS3 = async (file) => {
-  const upload = new Upload({
-    client: s3Client,
-    params: {
-      Bucket: process.env.AWS_S3_BUCKET,
-      Key: `uploads/${Date.now()}-${file.originalname}`,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-      // ACL: "public-read",
-    },
-  });
-
-  const result = await upload.done();
-  return result.Location; // public URL
-};
-const deleteFromS3 = async (imageUrl) => {
+/**
+ * Process uploaded file and convert to WebP
+ * @param {Object} file - Multer file object
+ * @param {string} component - Component name for directory organization
+ * @returns {Promise<string>} - URL of the processed image
+ */
+const processUploadedFile = async (file, component = 'general') => {
   try {
-    const bucketName = process.env.AWS_S3_BUCKET;
-
-    // Extract the key from the image URL
-    const url = new URL(imageUrl);
-    const key = decodeURIComponent(url.pathname.slice(1)); // remove leading "/"
-
-    const command = new DeleteObjectCommand({
-      Bucket: bucketName,
-      Key: key,
+    // Get the full path of the uploaded file
+    const filePath = path.join(process.cwd(), 'uploads', 'temp', file.filename);
+    
+    // Convert the image to WebP format and move to component directory
+    const webpPath = await convertToWebP(filePath, { 
+      quality: 80,
+      component: component
     });
-
-    await s3Client.send(command);
-    console.log("✅ Image deleted from S3:", key);
-    return true;
+    
+    console.log(`✅ Image processed successfully: ${webpPath}`);
+    return webpPath;
   } catch (error) {
-    console.error("❌ Failed to delete image from S3:", error);
+    console.error(`❌ Error processing uploaded file: ${error.message}`);
+    // If processing fails, return the original path
+    return `/uploads/temp/${file.filename}`;
+  }
+};
+
+/**
+ * Delete image from local storage
+ * @param {string} imageUrl - URL of the image to delete
+ * @returns {Promise<boolean>} - True if deletion was successful
+ */
+const deleteImage = async (imageUrl) => {
+  try {
+    if (!imageUrl) {
+      console.log("⚠️ No image URL provided for deletion");
+      return false;
+    }
+    
+    // Delete from local storage
+    const result = await deleteLocalImage(imageUrl);
+    return result;
+  } catch (error) {
+    console.error(`❌ Failed to delete image: ${error.message}`);
     throw error;
   }
 };
 
 module.exports = {
   upload,
-  uploadToS3,
-  deleteFromS3
+  processUploadedFile,
+  deleteImage
 };

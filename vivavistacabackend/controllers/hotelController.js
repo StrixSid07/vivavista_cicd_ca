@@ -1,7 +1,6 @@
 const Hotel = require("../models/Hotel");
 const { fetchTripAdvisorData } = require("../services/tripAdvisorService");
-const IMAGE_STORAGE = process.env.IMAGE_STORAGE || "local";
-const { uploadToS3,deleteFromS3 } = require("../middleware/imageUpload");
+const { processUploadedFile, deleteImage } = require("../middleware/imageUpload");
 // ✅ Create a New Hotel and Fetch Initial Data from TripAdvisor
 const createHotel = async (req, res) => {
   try {
@@ -12,19 +11,11 @@ const createHotel = async (req, res) => {
     console.log("this is hotle",name);
      // Extract image URLs from the request
      let imageUrls = [];
-     // if (req.files && req.files.length > 0) {
-     //   imageUrls = req.files.map((file) =>
-     //     IMAGE_STORAGE === "s3" ? file.location : `/uploads/${file.filename}`
-     //   );
-     // }
      if (req.files && req.files.length > 0) {
-       if (IMAGE_STORAGE === "s3") {
-         imageUrls = await Promise.all(
-           req.files.map((file) => uploadToS3(file))
-         );
-       } else {
-         imageUrls = req.files.map((file) => `/uploads/${file.filename}`);
-       }
+       // Process each uploaded file and convert to WebP
+       imageUrls = await Promise.all(
+         req.files.map((file) => processUploadedFile(file, 'hotel'))
+       );
      }
  
 
@@ -98,13 +89,10 @@ const updateHotel = async (req, res) => {
 
     // Handle new uploaded images
     if (req.files && req.files.length > 0) {
-      if (IMAGE_STORAGE === "s3") {
-        newImageUrls = await Promise.all(
-          req.files.map((file) => uploadToS3(file))
-        );
-      } else {
-        newImageUrls = req.files.map((file) => `/uploads/${file.filename}`);
-      }
+      // Process each uploaded file and convert to WebP
+      newImageUrls = await Promise.all(
+        req.files.map((file) => processUploadedFile(file, 'hotel'))
+      );
     }
 
     // Fetch existing hotel
@@ -154,30 +142,7 @@ const deleteHotelImage= async(req,res)=>{
     console.log("Deleting image:", imageUrl);
     
     // Delete the image file from storage
-    if (IMAGE_STORAGE === "s3") {
-      // Only call deleteFromS3 for S3 storage
-      await deleteFromS3(imageUrl);
-    } else {
-      // For local storage, try to delete the file from the filesystem
-      try {
-        const fs = require('fs');
-        const path = require('path');
-        
-        // Extract the file path from the URL
-        const filePath = path.join(process.cwd(), imageUrl);
-        
-        // Check if the file exists before attempting to delete
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.log("Local image file deleted successfully");
-        } else {
-          console.log("Local image file not found:", filePath);
-        }
-      } catch (fileError) {
-        console.log("Error deleting local file:", fileError);
-        // Continue even if file deletion fails
-      }
-    }
+    await deleteImage(imageUrl);
 
     // Remove image URL from MongoDB
     await Hotel.findByIdAndUpdate(hotelId, {

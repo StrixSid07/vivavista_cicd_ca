@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { water } from "../../assets";
 import axios from "axios";
-import { Base_Url } from "../../utils/Api";
+import { Base_Url, formatImageUrl } from "../../utils/Api";
 
 const AutoSlider = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -184,7 +184,7 @@ const AutoSlider = () => {
             >
               <div className="w-full h-full overflow-hidden">
                 <img
-                  src={slide.image}
+                  src={formatImageUrl(slide.image)}
                   alt={slide.title}
                   className="w-full h-full object-cover cursor-pointer transition-all duration-700 ease-in-out transform scale-110 group-hover:scale-125"
                   style={{

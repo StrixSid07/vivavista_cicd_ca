@@ -1,6 +1,5 @@
 const Carousel = require("../models/Carousel");
-const { uploadToS3 } = require("../middleware/imageUpload");
-const IMAGE_STORAGE = process.env.IMAGE_STORAGE || "local";
+const { processUploadedFile, deleteImage } = require("../middleware/imageUpload");
 
 // POST: Upload new carousel
 exports.createCarousel = async (req, res) => {
@@ -15,13 +14,10 @@ exports.createCarousel = async (req, res) => {
       return res.status(400).json({ message: "Max 5 images allowed." });
     }
 
-    let imageUrls = [];
-
-    if (IMAGE_STORAGE === "s3") {
-      imageUrls = await Promise.all(req.files.map((file) => uploadToS3(file)));
-    } else {
-      imageUrls = req.files.map((file) => `/uploads/${file.filename}`);
-    }
+    // Process each uploaded file and convert to WebP
+    let imageUrls = await Promise.all(
+      req.files.map((file) => processUploadedFile(file, 'carousel'))
+    );
 
     const carousel = new Carousel({ images: imageUrls });
     const saved = await carousel.save();
@@ -61,13 +57,23 @@ exports.updateCarousel = async (req, res) => {
       return res.status(400).json({ message: "Max 5 images allowed." });
     }
 
-    let imageUrls = [];
-
-    if (IMAGE_STORAGE === "s3") {
-      imageUrls = await Promise.all(req.files.map((file) => uploadToS3(file)));
-    } else {
-      imageUrls = req.files.map((file) => `/uploads/${file.filename}`);
+    // Delete existing images
+    if (carousel.images && carousel.images.length > 0) {
+      await Promise.all(
+        carousel.images.map(async (imageUrl) => {
+          try {
+            await deleteImage(imageUrl);
+          } catch (error) {
+            console.error(`Error deleting image ${imageUrl}:`, error);
+          }
+        })
+      );
     }
+
+    // Process each uploaded file and convert to WebP
+    let imageUrls = await Promise.all(
+      req.files.map((file) => processUploadedFile(file, 'carousel'))
+    );
 
     carousel.images = imageUrls;
 
@@ -83,6 +89,25 @@ exports.updateCarousel = async (req, res) => {
 exports.deleteCarousel = async (req, res) => {
   try {
     const { id } = req.params;
+    const carousel = await Carousel.findById(id);
+    
+    if (!carousel) {
+      return res.status(404).json({ message: "Carousel not found" });
+    }
+    
+    // Delete all images
+    if (carousel.images && carousel.images.length > 0) {
+      await Promise.all(
+        carousel.images.map(async (imageUrl) => {
+          try {
+            await deleteImage(imageUrl);
+          } catch (error) {
+            console.error(`Error deleting image ${imageUrl}:`, error);
+          }
+        })
+      );
+    }
+    
     await Carousel.findByIdAndDelete(id);
     res.status(200).json({ message: "Carousel deleted" });
   } catch (err) {

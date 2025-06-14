@@ -77,7 +77,7 @@ const PriceCalendar = ({ productId }) => {
           {activeTab === "pricecalendar" && (
             <div>
               <h3 className="text-xl font-bold">Price Calendar</h3>
-              <p className="text-gray-600">Price per person: £{product.price}</p>
+              <p className="text-gray-600">Price per person: ${product.price}</p>
             </div>
           )}
           {activeTab === "terms" && (
@@ -92,13 +92,13 @@ const PriceCalendar = ({ productId }) => {
       {/* Price Details */}
       <div className="lg:w-1/4 w-full bg-white rounded-lg shadow-md p-6 mt-6 lg:mt-0 lg:ml-6">
         <h2 className="text-xl font-bold text-gray-800">Price from</h2>
-        <div className="text-orange-500 text-3xl font-bold">£{pricePerPerson}</div>
+        <div className="text-orange-500 text-3xl font-bold">${pricePerPerson}</div>
         <p className="text-sm text-gray-500">per person</p>
 
         <div className="mt-4">
           <label className="block text-gray-600 font-medium">Departure Date</label>
           <select className="w-full p-2 border rounded-md mt-1">
-            <option>1 Apr 2025 - £{pricePerPerson}</option>
+            <option>1 Apr 2025 - ${pricePerPerson}</option>
           </select>
         </div>
 
@@ -130,7 +130,7 @@ const PriceCalendar = ({ productId }) => {
 
         <div className="mt-4">
           <h3 className="text-lg font-bold text-gray-800">Total Price:</h3>
-          <div className="text-orange-500 text-3xl font-bold">£{totalPrice}</div>
+          <div className="text-orange-500 text-3xl font-bold">${totalPrice}</div>
         </div>
 
         <button className="w-full bg-orange-500 text-white py-3 rounded-lg mt-4 hover:bg-orange-600">

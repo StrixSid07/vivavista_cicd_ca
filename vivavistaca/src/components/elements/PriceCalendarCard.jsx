@@ -67,7 +67,7 @@ const PriceCalendar = ({
                 {trip.country} — {trip.airport}
               </h3> */}
               <p className="mt-1 text-3xl font-bold tracking-tight">
-                £{trip.price}
+                ${trip.price}
               </p>
             </CardHeader>
 

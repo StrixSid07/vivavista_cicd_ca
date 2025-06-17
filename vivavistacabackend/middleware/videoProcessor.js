@@ -62,24 +62,41 @@ const convertToWebm = (filePath, options = { component: 'general' }) => {
  */
 const deleteLocalVideo = async (videoUrl) => {
   try {
+    if (!videoUrl) {
+      console.log("⚠️ No video URL provided for deletion");
+      return false;
+    }
+    
+    // Extract the file path from the URL by removing the server URL part
     let filePath = videoUrl;
     if (videoUrl.startsWith(SERVER_URL)) {
       filePath = videoUrl.replace(SERVER_URL, '');
     }
     
+    // Join with current working directory
     filePath = path.join(process.cwd(), filePath);
     
+    console.log(`Attempting to delete video file at path: ${filePath}`);
+    
+    // Check if the file exists before attempting to delete
     if (fs.existsSync(filePath)) {
       await fs.unlink(filePath);
       console.log(`✅ Local video file deleted: ${filePath}`);
       return true;
     } else {
       console.log(`⚠️ Local video file not found: ${filePath}`);
+      // Try alternate path formats if the file wasn't found
+      const alternativePath = filePath.replace(/\\/g, '/');
+      if (fs.existsSync(alternativePath)) {
+        await fs.unlink(alternativePath);
+        console.log(`✅ Local video file deleted (alternative path): ${alternativePath}`);
+        return true;
+      }
       return false;
     }
   } catch (error) {
-    console.error(`❌ Error deleting local file: ${error.message}`);
-    throw error;
+    console.error(`❌ Error deleting local video file: ${error.message}`);
+    return false; // Return false instead of throwing to prevent breaking the flow
   }
 };
 

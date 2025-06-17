@@ -249,7 +249,7 @@ export const ManageDeals = () => {
     
     setDeletedImages([]);
     setDeletedVideos([]);
-
+    
     setFormData(
       deal
         ? {
@@ -314,41 +314,41 @@ export const ManageDeals = () => {
                   ...p,
                   airport: Array.isArray(p.airport)
                     ? p.airport.map((a) =>
-                        typeof a === "object" ? a._id : a,
-                      )
-                    : [],
+                          typeof a === "object" ? a._id : a,
+                        )
+                      : [],
                   startdate: p.startdate.split("T")[0], // Convert to YYYY-MM-DD
                   enddate: p.enddate.split("T")[0], // Convert to YYYY-MM-DD
-                  hotel:
+                    hotel:
                     p.hotel && typeof p.hotel === "object"
                       ? p.hotel._id
                       : p.hotel,
-                }))
-              : [
-                  {
-                    country: "",
-                    priceswitch: false,
+                  }))
+                : [
+                    {
+                      country: "",
+                      priceswitch: false,
                     airport: [],
-                    hotel: "",
-                    startdate: "", // Ensure this is initialized as an empty string
-                    enddate: "", // Ensure this is initialized as an empty string
-                    price: 0,
-                    flightDetails: {
-                      outbound: {
-                        departureTime: "",
-                        arrivalTime: "",
-                        airline: "",
-                        flightNumber: "",
-                      },
-                      returnFlight: {
-                        departureTime: "",
-                        arrivalTime: "",
-                        airline: "",
-                        flightNumber: "",
+                      hotel: "",
+                      startdate: "", // Ensure this is initialized as an empty string
+                      enddate: "", // Ensure this is initialized as an empty string
+                      price: 0,
+                      flightDetails: {
+                        outbound: {
+                          departureTime: "",
+                          arrivalTime: "",
+                          airline: "",
+                          flightNumber: "",
+                        },
+                        returnFlight: {
+                          departureTime: "",
+                          arrivalTime: "",
+                          airline: "",
+                          flightNumber: "",
+                        },
                       },
                     },
-                  },
-                ],
+                  ],
         }
       : {
           title: "",
@@ -432,7 +432,7 @@ export const ManageDeals = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
-
+    
     // Create a new FormData object
     const formSubmission = new FormData();
 
@@ -440,6 +440,10 @@ export const ManageDeals = () => {
     const dataToSubmit = { ...formData };
     delete dataToSubmit.images;
     delete dataToSubmit.videos;
+
+    // Log the deleted images for debugging
+    console.log("Submitting deletedImages:", deletedImages);
+    console.log("Submitting deletedVideos:", deletedVideos);
 
     // Append the JSON data, including arrays of deleted media
     formSubmission.append("data", JSON.stringify({
@@ -501,8 +505,8 @@ export const ManageDeals = () => {
       if (processingInterval) clearInterval(processingInterval);
       setUploadProgress(100);
       setTimeout(() => {
-        fetchDeals();
-        handleCloseDialog();
+      fetchDeals();
+      handleCloseDialog();
       }, 500);
     } catch (error) {
       console.error("Error saving deal:", error);
@@ -519,11 +523,14 @@ export const ManageDeals = () => {
 
   const handleRemoveImage = async (indexToRemove, imageUrl) => {
     setImageError("");
-    const isNewImage = typeof imageUrl !== 'string';
+    const isNewImage = typeof imageUrl === 'object' || !imageUrl.startsWith('http');
 
     if (isNewImage) {
+        // For new images that haven't been uploaded to the server yet
         setNewImages(prev => prev.filter((_, i) => i !== indexToRemove - (formData.images.length - newImages.length)));
     } else {
+        // For existing images already on the server
+        console.log("Adding image to deletedImages:", imageUrl);
         setDeletedImages(prev => [...prev, imageUrl]);
     }
     
@@ -535,12 +542,19 @@ export const ManageDeals = () => {
 
   const handleRemoveVideo = (indexToRemove, videoUrl) => {
     setVideoError("");
-    const isNewVideo = typeof videoUrl !== 'string';
+    console.log("handleRemoveVideo called with:", { indexToRemove, videoUrl });
+    
+    const isNewVideo = typeof videoUrl === 'object' || !videoUrl.url || !videoUrl.url.startsWith('http');
+    console.log("isNewVideo:", isNewVideo);
 
     if (isNewVideo) {
+        // For new videos that haven't been uploaded to the server yet
+        console.log("Removing new video from newVideos array");
         setNewVideos(prev => prev.filter((_, i) => i !== indexToRemove - (formData.videos.length - newVideos.length)));
     } else {
-        setDeletedVideos(prev => [...prev, videoUrl]);
+        // For existing videos already on the server
+        console.log("Adding video to deletedVideos:", videoUrl.url);
+        setDeletedVideos(prev => [...prev, videoUrl.url]);
     }
 
     setFormData(prev => ({
@@ -2246,18 +2260,18 @@ export const ManageDeals = () => {
             </div>
           )}
           <div className="flex justify-end w-full">
-            <Button
-              onClick={handleCloseDialog}
-              color="red"
-              className="mr-2"
-              variant="text"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit} color="green" disabled={loading || isSubmitting}>
-              {loading ? "Saving..." : "Save"}
-            </Button>
+          <Button
+            onClick={handleCloseDialog}
+            color="red"
+            className="mr-2"
+            variant="text"
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} color="green" disabled={loading || isSubmitting}>
+            {loading ? "Saving..." : "Save"}
+          </Button>
           </div>
         </DialogFooter>
       </Dialog>

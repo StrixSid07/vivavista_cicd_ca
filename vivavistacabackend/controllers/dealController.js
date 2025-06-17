@@ -489,7 +489,19 @@ const updateDeal = async (req, res) => {
 
     // Handle Image Deletion
     if (parsedData.deletedImages && Array.isArray(parsedData.deletedImages)) {
-      await Promise.all(parsedData.deletedImages.map(url => deleteImage(url)));
+      console.log("Deleting images:", parsedData.deletedImages);
+      
+      // Delete each image from the filesystem
+      for (const imageUrl of parsedData.deletedImages) {
+        try {
+          await deleteImage(imageUrl);
+          console.log(`Successfully deleted image: ${imageUrl}`);
+        } catch (err) {
+          console.error(`Failed to delete image ${imageUrl}:`, err);
+        }
+      }
+      
+      // Remove deleted images from the deal's images array
       deal.images = deal.images.filter(
         (url) => !parsedData.deletedImages.includes(url)
       );
@@ -497,9 +509,21 @@ const updateDeal = async (req, res) => {
 
     // Handle Video Deletion
     if (parsedData.deletedVideos && Array.isArray(parsedData.deletedVideos)) {
-      await Promise.all(parsedData.deletedVideos.map(url => deleteLocalVideo(url)));
+      console.log("Deleting videos:", parsedData.deletedVideos);
+      
+      // Delete each video from the filesystem
+      for (const videoUrl of parsedData.deletedVideos) {
+        try {
+          await deleteLocalVideo(videoUrl);
+          console.log(`Successfully deleted video: ${videoUrl}`);
+        } catch (err) {
+          console.error(`Failed to delete video ${videoUrl}:`, err);
+        }
+      }
+      
+      // Remove deleted videos from the deal's videos array
       deal.videos = deal.videos.filter(
-        (url) => !parsedData.deletedVideos.includes(url)
+        (video) => !parsedData.deletedVideos.includes(video.url)
       );
     }
 
@@ -539,7 +563,7 @@ const updateDeal = async (req, res) => {
     if (updatedDeal.videos && updatedDeal.videos.length > 0) {
       updatedDeal.videos.forEach(video => {
         // Find the original file from req.files to check if it's a new upload
-        const isNew = req.files.videos.some(f => f.path === video.url);
+        const isNew = req.files && req.files.videos && req.files.videos.some(f => f.path === video.url);
         if (video.status === 'processing' && isNew) {
             videoQueue.add('process-video', {
                 dealId: updatedDeal._id,
@@ -613,7 +637,7 @@ const deleteDealVideo = async (req, res) => {
     // Remove the video URL from the deal's videos array
     const deal = await Deal.findByIdAndUpdate(
       dealId,
-      { $pull: { videos: videoUrl } },
+      { $pull: { videos: { url: videoUrl } } },
       { new: true }
     );
 

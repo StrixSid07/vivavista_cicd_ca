@@ -53,6 +53,11 @@ const convertToWebP = async (filePath, options = { quality: 80, component: 'gene
  */
 const deleteLocalImage = async (imageUrl) => {
   try {
+    if (!imageUrl) {
+      console.log("⚠️ No image URL provided for deletion");
+      return false;
+    }
+    
     // Extract the file path from the URL by removing the server URL part
     let filePath = imageUrl;
     if (imageUrl.startsWith(SERVER_URL)) {
@@ -62,6 +67,8 @@ const deleteLocalImage = async (imageUrl) => {
     // Join with current working directory
     filePath = path.join(process.cwd(), filePath);
     
+    console.log(`Attempting to delete file at path: ${filePath}`);
+    
     // Check if the file exists before attempting to delete
     if (fs.existsSync(filePath)) {
       await fs.unlink(filePath);
@@ -69,11 +76,18 @@ const deleteLocalImage = async (imageUrl) => {
       return true;
     } else {
       console.log(`⚠️ Local image file not found: ${filePath}`);
+      // Try alternate path formats if the file wasn't found
+      const alternativePath = filePath.replace(/\\/g, '/');
+      if (fs.existsSync(alternativePath)) {
+        await fs.unlink(alternativePath);
+        console.log(`✅ Local image file deleted (alternative path): ${alternativePath}`);
+        return true;
+      }
       return false;
     }
   } catch (error) {
     console.error(`❌ Error deleting local file: ${error.message}`);
-    throw error;
+    return false; // Return false instead of throwing to prevent breaking the flow
   }
 };
 

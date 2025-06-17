@@ -20,6 +20,10 @@ client.connect();
 dotenv.config();
 connectDB();
 
+// Define the server URL for image paths
+const SERVER_URL = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5003}`;
+console.log(`🌐 Server URL for images: ${SERVER_URL}`);
+
 // CORS Configuration
 const corsOptions = {
   origin: [
@@ -41,13 +45,24 @@ const corsOptions = {
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true, // Allow cookies/session
   allowedHeaders: "Content-Type, Authorization",
+  exposedHeaders: ["Content-Type", "Authorization"],
 };
 
 const app = express();
-app.use(cors());
-// app.options("*", cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(helmet());
+
+// Configure Helmet with relaxed image source policy
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:", SERVER_URL, "http://localhost:5003", "https:", "http:"],
+      connectSrc: ["'self'", SERVER_URL, "http://localhost:5003", "https:", "http:"]
+    }
+  }
+}));
+
 app.use(morgan("dev"));
 app.use(compression());
 
@@ -60,11 +75,13 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-// Serve static files with proper CORS headers
+// Serve static files with proper CORS headers - allow access from any origin
 app.use("/uploads", (req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Cross-Origin-Resource-Policy", "cross-origin");
+  res.header("Cross-Origin-Embedder-Policy", "credentialless");
   next();
 }, express.static(path.join(__dirname, "uploads")));
 

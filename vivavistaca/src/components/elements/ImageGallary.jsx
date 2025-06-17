@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
-import { formatImageUrl } from "../../utils/Api";
+
 
 const ImageGallery = ({ images }) => {
   const [open, setOpen] = useState(false);
@@ -12,11 +12,8 @@ const ImageGallery = ({ images }) => {
     setOpen(true);
   };
 
-  // Ensure all images have the base URL prepended
-  const formattedImages = images.map((img) => formatImageUrl(img));
-
   // Limit the collage to 5 images, but Lightbox still shows all
-  const collageImages = formattedImages.slice(0, 5);
+  const collageImages = images.slice(0, 5);
 
   return (
     <div className="w-full mx-auto">
@@ -75,7 +72,7 @@ const ImageGallery = ({ images }) => {
         <Lightbox
           open={open}
           close={() => setOpen(false)}
-          slides={formattedImages.map((src) => ({ src }))}
+          slides={images.map((src) => ({ src }))}
           render={{
             footer: ({ currentIndex, slidesCount }) => (
               <div className="absolute bottom-0 right-0 p-4 text-white text-lg">

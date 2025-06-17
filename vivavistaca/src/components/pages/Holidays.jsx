@@ -19,7 +19,7 @@ import {
   CardFooter,
 } from "@material-tailwind/react";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { Base_Url, formatImageUrl } from "../../utils/Api";
+import { Base_Url } from "../../utils/Api";
 import { slugify } from "../../utils/slugify";
 import { holidays } from "../../assets";
 
@@ -185,7 +185,7 @@ const Holidays = () => {
                     >
                       <div className="relative w-full h-full">
                         <img
-                          src={formatImageUrl(deal.images[imageIndex[deal._id]])}
+                          src={deal.images[imageIndex[deal._id]]}
                           alt={deal.title}
                           className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105 cursor-pointer"
                           loading="eager"
@@ -196,12 +196,12 @@ const Holidays = () => {
                         {deal.images.length > 1 && (
                           <div className="hidden">
                             <img 
-                              src={formatImageUrl(deal.images[(imageIndex[deal._id] + 1) % deal.images.length])} 
+                              src={deal.images[(imageIndex[deal._id] + 1) % deal.images.length]} 
                               alt="preload next" 
                               loading="eager"
                             />
                             <img 
-                              src={formatImageUrl(deal.images[imageIndex[deal._id] === 0 ? deal.images.length - 1 : imageIndex[deal._id] - 1])} 
+                              src={deal.images[imageIndex[deal._id] === 0 ? deal.images.length - 1 : imageIndex[deal._id] - 1]} 
                               alt="preload prev"
                               loading="eager" 
                             />

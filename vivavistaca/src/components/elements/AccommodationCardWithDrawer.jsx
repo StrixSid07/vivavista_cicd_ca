@@ -7,7 +7,7 @@ import {
   Typography,
   IconButton,
 } from "@material-tailwind/react";
-import { formatImageUrl } from "../../utils/Api";
+
 
 const AccommodationCard = ({ hotel }) => {
   const rating = hotel.tripAdvisorRating;
@@ -18,8 +18,8 @@ const AccommodationCard = ({ hotel }) => {
   const closeDrawer = () => setDrawerOpen(false);
 
   // Format all hotel images
-  const formattedImages = hotel.images?.map(img => formatImageUrl(img)) || [];
-  const formattedTripAdvisorPhotos = hotel.tripAdvisorPhotos?.map(img => formatImageUrl(img)) || [];
+  const formattedImages = hotel.images || [];
+  const formattedTripAdvisorPhotos = hotel.tripAdvisorPhotos || [];
 
   const renderStars = () => {
     const stars = [];

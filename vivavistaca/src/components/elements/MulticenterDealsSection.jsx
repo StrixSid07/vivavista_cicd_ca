@@ -12,7 +12,7 @@ import {
   MdOutlineArrowBackIos,
   MdOutlineArrowForwardIos,
 } from "react-icons/md";
-import { formatImageUrl } from "../../utils/Api";
+
 
 // Function to format destination text for display
 const formatDestinationText = (primaryDestination, additionalDestinations) => {
@@ -44,8 +44,7 @@ const formatDestinationText = (primaryDestination, additionalDestinations) => {
 const MulticenterCard = ({ deal, index, currentImage, nextImage, prevImage }) => {
   const navigate = useNavigate();
   
-  // Format images with proper URLs
-  const formattedImages = deal.images.map(img => formatImageUrl(img));
+
   
   return (
     <motion.div
@@ -59,7 +58,7 @@ const MulticenterCard = ({ deal, index, currentImage, nextImage, prevImage }) =>
         <div className="w-full h-full overflow-hidden">
           <motion.img
             key={currentImage}
-            src={formattedImages[currentImage]}
+            src={deal.images[currentImage]}
             alt={deal.title}
             initial={{ opacity: 0, scale: 1.2 }}
             animate={{ opacity: 1, scale: 1 }}

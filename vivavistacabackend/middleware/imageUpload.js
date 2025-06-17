@@ -4,6 +4,9 @@ const path = require("path");
 const { convertToWebP, deleteLocalImage, ensureUploadDirectories } = require("./imageProcessor");
 require("dotenv").config();
 
+// Get the server URL from environment or use default
+const SERVER_URL = process.env.SERVER_URL || "http://localhost:5003";
+
 // Ensure upload directories exist on server start
 ensureUploadDirectories().catch(err => {
   console.error("Error creating upload directories:", err);
@@ -42,7 +45,7 @@ const upload = multer({
  * Process uploaded file and convert to WebP
  * @param {Object} file - Multer file object
  * @param {string} component - Component name for directory organization
- * @returns {Promise<string>} - URL of the processed image
+ * @returns {Promise<string>} - Full URL of the processed image
  */
 const processUploadedFile = async (file, component = 'general') => {
   try {
@@ -50,6 +53,7 @@ const processUploadedFile = async (file, component = 'general') => {
     const filePath = path.join(process.cwd(), 'uploads', 'temp', file.filename);
     
     // Convert the image to WebP format and move to component directory
+    // This now returns a full URL with SERVER_URL included
     const webpPath = await convertToWebP(filePath, { 
       quality: 80,
       component: component
@@ -59,8 +63,8 @@ const processUploadedFile = async (file, component = 'general') => {
     return webpPath;
   } catch (error) {
     console.error(`❌ Error processing uploaded file: ${error.message}`);
-    // If processing fails, return the original path
-    return `/uploads/temp/${file.filename}`;
+    // If processing fails, return the original path with server URL
+    return `${SERVER_URL}/uploads/temp/${file.filename}`;
   }
 };
 

@@ -18,7 +18,7 @@ import {
   PhotoIcon,
 } from "@heroicons/react/24/outline";
 import axios from "@/utils/axiosInstance";
-import { formatImageUrl } from "@/utils/api";
+
 
 export function ManageAutoslider() {
   const [autosliders, setAutosliders] = useState([]);
@@ -316,7 +316,7 @@ export function ManageAutoslider() {
               >
                 {autoslider.image ? (
                   <img
-                    src={formatImageUrl(autoslider.image)}
+                    src={autoslider.image}
                     alt={autoslider.title}
                     className="h-full w-full object-cover"
                   />

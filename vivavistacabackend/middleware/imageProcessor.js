@@ -1,6 +1,10 @@
 const fs = require('fs-extra');
 const path = require('path');
 const sharp = require('sharp');
+require("dotenv").config();
+
+// Get the server URL from environment or use default
+const SERVER_URL = process.env.SERVER_URL || "http://localhost:5003";
 
 /**
  * Convert an image to WebP format
@@ -8,7 +12,7 @@ const sharp = require('sharp');
  * @param {Object} options - Options for WebP conversion
  * @param {number} options.quality - WebP quality (1-100)
  * @param {string} options.component - Component name for directory organization
- * @returns {Promise<string>} - Path to the converted WebP file
+ * @returns {Promise<string>} - Full URL path to the converted WebP file
  */
 const convertToWebP = async (filePath, options = { quality: 80, component: 'general' }) => {
   try {
@@ -32,12 +36,13 @@ const convertToWebP = async (filePath, options = { quality: 80, component: 'gene
     
     console.log(`✅ Image converted to WebP: ${webpPath}`);
     
-    // Return the path with /uploads/component format for database storage
-    return `/uploads/${component}/${filename}`;
+    // Return the full server URL path for database storage
+    return `${SERVER_URL}/uploads/${component}/${filename}`;
   } catch (error) {
     console.error(`❌ Error converting image to WebP: ${error.message}`);
-    // If conversion fails, return the original path
-    return filePath.replace(process.cwd(), '');
+    // If conversion fails, return the original path with server URL
+    const relativePath = filePath.replace(process.cwd(), '');
+    return `${SERVER_URL}${relativePath}`;
   }
 };
 
@@ -48,8 +53,14 @@ const convertToWebP = async (filePath, options = { quality: 80, component: 'gene
  */
 const deleteLocalImage = async (imageUrl) => {
   try {
-    // Extract the file path from the URL
-    const filePath = path.join(process.cwd(), imageUrl);
+    // Extract the file path from the URL by removing the server URL part
+    let filePath = imageUrl;
+    if (imageUrl.startsWith(SERVER_URL)) {
+      filePath = imageUrl.replace(SERVER_URL, '');
+    }
+    
+    // Join with current working directory
+    filePath = path.join(process.cwd(), filePath);
     
     // Check if the file exists before attempting to delete
     if (fs.existsSync(filePath)) {

@@ -11,7 +11,7 @@ import {
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { blog } from "../../assets";
-import { formatImageUrl } from "../../utils/Api";
+
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -25,8 +25,7 @@ const BlogPost = ({ id, title, image, date, author, summary }) => {
     navigate(`/blog/${id}`);
   };
 
-  // Format image URL
-  const formattedImage = formatImageUrl(image);
+
 
   return (
     <motion.div
@@ -39,7 +38,7 @@ const BlogPost = ({ id, title, image, date, author, summary }) => {
       <Card className="max-w-sm mx-auto my-8 shadow-lg h-[36rem] flex flex-col">
         <CardHeader floated={false} className="h-2/3">
           <img
-            src={formattedImage}
+            src={image}
             alt={title}
             className="object-cover h-full w-full rounded-t-lg"
           />

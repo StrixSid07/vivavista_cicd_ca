@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import { FaCamera, FaVideo } from "react-icons/fa";
-import { formatImageUrl } from "../../utils/Api";
+
 
 const ImageGallery2 = ({ images }) => {
   const [open, setOpen] = useState(false);
@@ -12,11 +12,8 @@ const ImageGallery2 = ({ images }) => {
     setOpen(true);
   };
 
-  // Format all images with proper URLs
-  const formattedImages = images.map((img) => formatImageUrl(img));
-  
   // Limit the collage to 5 images, but Lightbox still shows all
-  const collageImages = formattedImages.slice(0, 5);
+  const collageImages = images.slice(0, 5);
 
   return (
     <div className="w-full mx-auto pt-4 md:px-20 px-2 relative">
@@ -96,7 +93,7 @@ const ImageGallery2 = ({ images }) => {
         <Lightbox
           open={open}
           close={() => setOpen(false)}
-          slides={formattedImages.map((src) => ({ src }))}
+          slides={images.map((src) => ({ src }))}
           render={{
             footer: ({ currentIndex, slidesCount }) => (
               <div className="absolute bottom-0 right-0 p-4 text-white text-lg">

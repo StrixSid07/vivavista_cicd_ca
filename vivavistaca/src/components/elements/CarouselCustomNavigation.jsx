@@ -4,7 +4,7 @@ import { Button } from "@material-tailwind/react";
 import bg1 from "../../assets/bg/homebg1.jpg";
 import bg2 from "../../assets/bg/homebg2.jpg";
 import bg3 from "../../assets/bg/homebg3.jpg";
-import { formatImageUrl } from "../../utils/Api";
+
 
 const buttonVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -36,7 +36,7 @@ export function CarouselCustomNavigation({slides}) {
       {slides.map((slide, index) => (
         <div key={index} className="relative h-full w-full">
           <img
-            src={formatImageUrl(slide.image)}
+                              src={slide.image}
             alt={`Slide ${index + 1}`}
             className="h-full w-full object-cover"
           />

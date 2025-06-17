@@ -16,7 +16,7 @@ import {
 } from "react-icons/fa";
 import { MdOutlineArrowBackIos, MdOutlineArrowForwardIos } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
-import { formatImageUrl } from "../../utils/Api";
+
 
 const NewCardComponent = ({
   images,
@@ -32,8 +32,7 @@ const NewCardComponent = ({
   prevImage,
   tag,
 }) => {
-  // Format all images with proper URLs
-  const formattedImages = images.map(img => formatImageUrl(img));
+
   
   return (
     <Card className="max-w-[24rem] w-full overflow-hidden h-[30rem]">
@@ -47,7 +46,7 @@ const NewCardComponent = ({
           <AnimatePresence mode="wait">
             <motion.img
               key={currentImage}
-              src={formattedImages[currentImage]}
+              src={images[currentImage]}
               alt="Property"
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}

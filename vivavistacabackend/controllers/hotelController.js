@@ -114,7 +114,7 @@ const updateHotel = async (req, res) => {
     res.json({ message: "Hotel updated successfully", hotel: updatedHotel });
     
     // If locationId has changed and is not empty, update TripAdvisor data
-    if (locationId && locationId !== hotel.locationId) {
+    if (locationId ) {
       fetchTripAdvisorData(locationId).then(async (tripAdvisorData) => {
         if (tripAdvisorData) {
           await Hotel.findByIdAndUpdate(updatedHotel._id, {

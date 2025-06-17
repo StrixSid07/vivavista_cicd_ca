@@ -4,6 +4,7 @@ const Airport = require("../models/Airport");
 const Hotel = require("../models/Hotel");
 const Destination = require("../models/Destination");
 const { processUploadedFile, deleteImage } = require("../middleware/imageUpload");
+const { convertToWebm, deleteLocalVideo } = require("../middleware/videoProcessor");
 
 // Maximum number of featured deals allowed
 const MAX_FEATURED_DEALS = 21;
@@ -151,10 +152,18 @@ const createDeal = async (req, res) => {
 
     // Extract image URLs
     let imageUrls = [];
-    if (req.files && req.files.length) {
+    if (req.files && req.files.images && req.files.images.length) {
       // Process each uploaded file and convert to WebP
       imageUrls = await Promise.all(
-        req.files.map((file) => processUploadedFile(file, 'deal'))
+        req.files.images.map((file) => processUploadedFile(file, 'deal'))
+      );
+    }
+
+    // Extract video URLs
+    let videoUrls = [];
+    if (req.files && req.files.videos && req.files.videos.length) {
+      videoUrls = await Promise.all(
+        req.files.videos.map((file) => convertToWebm(file.path, { component: 'dealvideos' }))
       );
     }
 
@@ -163,6 +172,7 @@ const createDeal = async (req, res) => {
       title,
       description,
       images: imageUrls,
+      videos: videoUrls,
       availableCountries,
       destination,
       destinations,
@@ -435,285 +445,196 @@ const getAllDealsAdmin = async (req, res) => {
 // ✅ Get a Single Deal (Only If Available in User's Selected Country)
 const getDealById = async (req, res) => {
   try {
-    console.log(`Fetching deal with ID: ${req.params.id}`);
-    
-    if (!req.params.id || !req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({ message: "Invalid deal ID format" });
-    }
-    
-    const deal = await Deal.findById(req.params.id)
-      .populate("destination")
-      .populate({
-        path: "destinations",
-        select: "name", // Only populate destinations with the name field
-      })
-      .populate({
-        path: "holidaycategories",
-        select: "name",
-      })
-      .populate({
-        path: "boardBasis",
-        select: "name",
-      })
-      .populate({
-        path: "hotels",
-        select: "name stars about rooms tripAdvisorRating facilities location images tripAdvisorPhotos tripAdvisorReviews tripAdvisorLatestReviews tripAdvisorLink externalBookingLink ",
-      })
-      .populate({
-        path: "prices.hotel",
-        select: "name stars tripAdvisorRating facilities location",
-      })
-      .populate({
-        path: "prices.airport",
-        select: "name code",
-      });
+    const dealId = req.params.id;
+    let deal = await Deal.findById(dealId)
+      .populate("destination", "name")
+      .populate("hotels", "name")
+      .populate("boardBasis", "name");
 
     if (!deal) {
       return res.status(404).json({ message: "Deal not found" });
     }
 
-    console.log(`Found deal: ${deal.title}`);
-    
-    const today = new Date();
-    const threeDaysFromNow = new Date(today);
-    threeDaysFromNow.setDate(today.getDate() + 3);
-
-    // Expand prices by each airport if it's an array
-    const expandedPrices = [];
-    for (const price of deal.prices || []) {
-      const priceObj = price.toObject ? price.toObject() : price;
-
-      if (Array.isArray(priceObj.airport)) {
-        for (const airport of priceObj.airport) {
-          expandedPrices.push({
-            ...priceObj,
-            airport,
-          });
-        }
-      } else {
-        expandedPrices.push(priceObj);
-      }
-    }
-
-    // For development and testing, don't restrict by country
-    // In production, uncomment the country restriction if needed
-    const isAdmin = req.user?.role === "admin";
-    let finalPrices = expandedPrices;
-
-    // Remove country restriction for now to fix the issue
-    /*
-    if (!isAdmin) {
-      const userCountry = req.session?.country || "Canada";
-
-      if (!deal.availableCountries.includes(userCountry)) {
-        return res.status(403).json({
-          message: "This deal is not available in your selected country.",
-        });
-      }
-
-      finalPrices = expandedPrices.filter((p) => {
-        const start = new Date(p.startdate); // 👈 FIXED field name
-        return p.country === userCountry && start > threeDaysFromNow;
-      });
-    }
-    */
-
-    // ✅ Sort prices by earliest startdate
-    finalPrices.sort((a, b) => new Date(a.startdate) - new Date(b.startdate)); // 👈 FIXED field name
-
-    deal.prices = finalPrices;
-
-    console.log(`Returning deal with ${finalPrices.length} price options`);
     res.json(deal);
   } catch (error) {
-    console.error("Error fetching deal by ID:", error);
-    res.status(500).json({ message: "Server error", error: error.toString() });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-
-// ✅ Update a Deal (Admin Only)
 const updateDeal = async (req, res) => {
   try {
-    const dealId = req.params.id;
-    const deal = await Deal.findById(dealId);
+    const { id } = req.params;
+    const parsedData = JSON.parse(req.body.data);
 
+    let deal = await Deal.findById(id);
     if (!deal) {
       return res.status(404).json({ message: "Deal not found" });
     }
-    const parsedData = JSON.parse(req.body.data);
-    // Validate availableCountries if provided
-    if (
-      req.body.availableCountries &&
-      (!Array.isArray(req.body.availableCountries) ||
-        req.body.availableCountries.length === 0)
-    ) {
-      return res
-        .status(400)
-        .json({ message: "At least one country must be selected." });
-    }
 
-    // Validate destination and destinations if provided
-    if (
-      (parsedData.destination && !mongoose.Types.ObjectId.isValid(parsedData.destination)) &&
-      (!Array.isArray(parsedData.destinations) || parsedData.destinations.length === 0)
-    ) {
-      return res
-        .status(400)
-        .json({ message: "At least one valid destination must be selected." });
-    }
-
-    // Validate boardBasis if provided
-    if (
-      parsedData.boardBasis &&
-      !mongoose.Types.ObjectId.isValid(parsedData.boardBasis)
-    ) {
-      return res
-        .status(400)
-        .json({ message: "A valid board basis must be selected." });
-    }
-
-    // Extract image URLs from the request
-    let imageUrls = [];
-    if (req.files && req.files.length > 0) {
-      // Process each uploaded file and convert to WebP
-      imageUrls = await Promise.all(
-        req.files.map((file) => processUploadedFile(file, 'deal'))
+    // Handle Image Deletion
+    if (parsedData.deletedImages && Array.isArray(parsedData.deletedImages)) {
+      await Promise.all(parsedData.deletedImages.map(url => deleteImage(url)));
+      deal.images = deal.images.filter(
+        (url) => !parsedData.deletedImages.includes(url)
       );
     }
 
-    // Validate itinerary if provided
-    let cleanedItinerary = [];
-    if (parsedData.itinerary && Array.isArray(parsedData.itinerary)) {
-      cleanedItinerary = parsedData.itinerary.filter((item) => {
-        // keep only items where both title & description are non-empty strings
-        return item.title?.trim() && item.description?.trim();
-      });
+    // Handle Video Deletion
+    if (parsedData.deletedVideos && Array.isArray(parsedData.deletedVideos)) {
+      await Promise.all(parsedData.deletedVideos.map(url => deleteLocalVideo(url)));
+      deal.videos = deal.videos.filter(
+        (url) => !parsedData.deletedVideos.includes(url)
+      );
     }
-    // Prepare the updated data
-    const updatedData = {
-      ...parsedData,
-      itinerary: cleanedItinerary,
-      images:
-        imageUrls.length > 0 ? [...deal.images, ...imageUrls] : deal.images, // Keep existing images if no new images
-    };
 
-    // Handle destination change (legacy single destination support)
-    if (
-      parsedData.destination &&
-      parsedData.destination !== deal.destination?.toString()
-    ) {
-      console.log("Single destination changed. Updating references.");
+    // Handle New Image Uploads
+    if (req.files && req.files.images && req.files.images.length > 0) {
+      const newImageUrls = await Promise.all(
+        req.files.images.map((file) => processUploadedFile(file, 'deal'))
+      );
+      deal.images.push(...newImageUrls);
+    }
 
-      // Remove deal from old destination
-      if (deal.destination) {
-        await Destination.findByIdAndUpdate(deal.destination, {
-          $pull: { deals: deal._id },
-        });
-        console.log("Removed from old destination:", deal.destination);
-      }
-
-      // Add deal to new destination
-      await Destination.findByIdAndUpdate(parsedData.destination, {
-        $addToSet: { deals: deal._id },
-      });
-      console.log("Added to new destination:", parsedData.destination);
+    // Handle New Video Uploads
+    if (req.files && req.files.videos && req.files.videos.length > 0) {
+      const newVideoUrls = await Promise.all(
+        req.files.videos.map((file) => convertToWebm(file.path, { component: 'dealvideos' }))
+      );
+      deal.videos.push(...newVideoUrls);
     }
     
-    // Handle multiple destinations update
-    if (Array.isArray(parsedData.destinations)) {
-      console.log("Multiple destinations changed. Updating references.");
-      
-      // Get existing destinations
-      const existingDestinations = deal.destinations || [];
-      
-      // Find destinations to remove (destinations that were in the deal but not in the updated list)
-      const destinationsToRemove = existingDestinations.filter(
-        destId => !parsedData.destinations.includes(destId.toString())
-      );
-      
-      // Find destinations to add (destinations that are in the updated list but not in the deal)
-      const destinationsToAdd = parsedData.destinations.filter(
-        destId => !existingDestinations.some(existing => existing.toString() === destId)
-      );
-      
-      // Remove deal from old destinations
-      await Promise.all(
-        destinationsToRemove.map(destId =>
-          Destination.findByIdAndUpdate(destId, {
-            $pull: { deals: deal._id },
-          })
-        )
-      );
-      
-      // Add deal to new destinations
-      await Promise.all(
-        destinationsToAdd.map(destId =>
-          Destination.findByIdAndUpdate(destId, {
-            $addToSet: { deals: deal._id },
-          })
-        )
-      );
-      
-      console.log("Updated multiple destinations successfully");
+    // Update other deal fields
+    for (const key in parsedData) {
+      if (key !== 'images' && key !== 'videos' && key !== 'deletedImages' && key !== 'deletedVideos') {
+        deal[key] = parsedData[key];
+      }
     }
 
-    console.log("Updating deal with data:", updatedData);
-
-    // Check if deal is being marked as featured
-    let featuredResult = { success: true };
-    if (parsedData.isFeatured === true && !deal.isFeatured) {
-      console.log(`Deal ${dealId} is being marked as featured. Managing featured deals limit.`);
-      featuredResult = await manageFeaturedDealsLimit(dealId);
+    // If 'isFeatured' is being set to true, manage the limit
+    if (parsedData.isFeatured && !deal.isFeatured) {
+      await manageFeaturedDealsLimit(deal._id);
     }
 
-    // Update the deal with the new data
-    const updatedDeal = await Deal.findByIdAndUpdate(dealId, updatedData, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedDeal = await deal.save();
 
-    res.json({ 
-      message: "Deal updated successfully", 
-      deal: updatedDeal,
-      featuredResult
-    });
+    res.status(200).json({ message: "Deal updated successfully", deal: updatedDeal });
   } catch (error) {
-    console.error("Error updating deal:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("UpdateDeal Error:", error);
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({ message: "Validation failed", errors });
+    }
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
 const deleteDealImage = async (req, res) => {
   const { dealId } = req.params;
-  const { imageUrl } = req.body;
-  try {
-    console.log("Deleting deal image:", imageUrl);
-    
-    // Delete the image file from storage
-    await deleteImage(imageUrl);
+  const deal = await Deal.findById(dealId);
 
-    // Remove image URL from MongoDB
-    await Deal.findByIdAndUpdate(dealId, {
-      $pull: { images: imageUrl },
-    });
-    
-    console.log("Image deleted successfully from database");
-    res.status(200).json({ message: "Image deleted successfully" });
-  } catch (error) {
-    console.log("Error in deleteDealImage:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+  if (!deal) {
+    return res.status(404).json({ message: "Deal not found" });
   }
+
+  // Delete associated images from local storage
+  if (deal.images && deal.images.length > 0) {
+    await Promise.all(deal.images.map((url) => deleteImage(url)));
+  }
+
+  // Delete associated videos from local storage
+  if (deal.videos && deal.videos.length > 0) {
+    await Promise.all(deal.videos.map((url) => deleteLocalVideo(url)));
+  }
+
+  // Unlink from single destination (legacy)
+  if (deal.destination) {
+    await Destination.findByIdAndUpdate(deal.destination, {
+      $pull: { deals: deal._id },
+    });
+  }
+
+  // Unlink from multiple destinations
+  if (deal.destinations && deal.destinations.length > 0) {
+    await Destination.updateMany(
+      { _id: { $in: deal.destinations } },
+      { $pull: { deals: deal._id } }
+    );
+  }
+  
+  await Deal.findByIdAndDelete(dealId);
+
+  res.json({ message: "Deal deleted successfully" });
 };
-// ✅ Delete a Deal (Admin Only)
-const deleteDeal = async (req, res) => {
+
+const deleteDealVideo = async (req, res) => {
   try {
-    const deal = await Deal.findByIdAndDelete(req.params.id);
+    const { dealId, videoUrl } = req.body;
+
+    if (!dealId || !videoUrl) {
+      return res.status(400).json({ message: "Deal ID and video URL are required" });
+    }
+
+    // Delete the video file from storage
+    await deleteLocalVideo(videoUrl);
+
+    // Remove the video URL from the deal's videos array
+    const deal = await Deal.findByIdAndUpdate(
+      dealId,
+      { $pull: { videos: videoUrl } },
+      { new: true }
+    );
+
     if (!deal) {
       return res.status(404).json({ message: "Deal not found" });
     }
+
+    res.status(200).json({ message: "Video deleted successfully", deal });
+  } catch (error) {
+    console.error("Error deleting deal video:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Delete a Deal (Admin Only)
+const deleteDeal = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deal = await Deal.findById(id);
+
+    if (!deal) {
+      return res.status(404).json({ message: "Deal not found" });
+    }
+
+    // Delete associated images from local storage
+    if (deal.images && deal.images.length > 0) {
+      await Promise.all(deal.images.map((url) => deleteImage(url)));
+    }
+
+    // Delete associated videos from local storage
+    if (deal.videos && deal.videos.length > 0) {
+      await Promise.all(deal.videos.map((url) => deleteLocalVideo(url)));
+    }
+
+    // Unlink from single destination (legacy)
+    if (deal.destination) {
+      await Destination.findByIdAndUpdate(deal.destination, {
+        $pull: { deals: deal._id },
+      });
+    }
+
+    // Unlink from multiple destinations
+    if (deal.destinations && deal.destinations.length > 0) {
+      await Destination.updateMany(
+        { _id: { $in: deal.destinations } },
+        { $pull: { deals: deal._id } }
+      );
+    }
+    
+    await Deal.findByIdAndDelete(id);
+
     res.json({ message: "Deal deleted successfully" });
   } catch (error) {
+    console.error("DeleteDeal Error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -799,13 +720,14 @@ const searchDeals = async (req, res) => {
 };
 
 module.exports = {
-  createDeal,
   getAllDeals,
   getDealById,
+  createDeal,
   updateDeal,
   deleteDeal,
   getAllDealsAdmin,
-  getDealsByDestination,
   searchDeals,
   deleteDealImage,
+  deleteDealVideo,
+  getDealsByDestination,
 };

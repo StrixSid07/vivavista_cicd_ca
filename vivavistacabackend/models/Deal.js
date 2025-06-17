@@ -3,11 +3,11 @@ const mongoose = require("mongoose");
 const ItineraryItemSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true,
+    required: false,
   },
   description: {
     type: String,
-    required: true,
+    required: false,
   },
 });
 
@@ -16,6 +16,7 @@ const DealSchema = new mongoose.Schema(
     title: { type: String, required: true },
     description: { type: String, required: true },
     images: [{ type: String }], // Image URLs
+    videos: [{ type: String }], // Video URLs
     availableCountries: [{ type: String, required: true }], // ['UK', 'USA', 'Canada']
     destination: {
       type: mongoose.Schema.Types.ObjectId,

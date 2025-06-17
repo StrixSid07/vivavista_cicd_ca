@@ -66,6 +66,7 @@ export const ManageDeals = () => {
     tag: "",
     LowDeposite: "",
     images: [],
+    videos: [],
     prices: [
       {
         country: "",
@@ -103,6 +104,10 @@ export const ManageDeals = () => {
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const [deleteInProgress, setDeleteInProgress] = useState(false);
   const [imageError, setImageError] = useState("");
+  const [videoError, setVideoError] = useState("");
+  const [newVideos, setNewVideos] = useState([]);
+  const [deletedImages, setDeletedImages] = useState([]);
+  const [deletedVideos, setDeletedVideos] = useState([]);
 
   // Add this state for custom dropdowns
   const [customDropdownOpen, setCustomDropdownOpen] = useState({
@@ -238,6 +243,9 @@ export const ManageDeals = () => {
       console.log("Mapped destination IDs:", destinationIds);
     }
     
+    setDeletedImages([]);
+    setDeletedVideos([]);
+
     setFormData(
       deal
         ? {
@@ -293,50 +301,50 @@ export const ManageDeals = () => {
                 : Array.isArray(deal.termsAndConditions)
                 ? deal.termsAndConditions
                 : [""],
-            images: deal.images,
-            tag: deal.tag,
-            LowDeposite: deal.LowDeposite,
-            prices:
-              deal.prices.length > 0
-                ? deal.prices.map((price) => ({
-                    ...price,
-                    airport: Array.isArray(price.airport)
-                      ? price.airport.map((a) =>
-                          typeof a === "object" ? a._id : a,
-                        )
-                      : [],
-                    startdate: price.startdate.split("T")[0], // Convert to YYYY-MM-DD
-                    enddate: price.enddate.split("T")[0], // Convert to YYYY-MM-DD
-                    hotel:
-                      price.hotel && typeof price.hotel === "object"
-                        ? price.hotel._id
-                        : price.hotel,
-                  }))
-                : [
-                    {
-                      country: "",
-                      priceswitch: false,
-                      airport: "",
-                      hotel: "",
-                      startdate: "", // Ensure this is initialized as an empty string
-                      enddate: "", // Ensure this is initialized as an empty string
-                      price: 0,
-                      flightDetails: {
-                        outbound: {
-                          departureTime: "",
-                          arrivalTime: "",
-                          airline: "",
-                          flightNumber: "",
-                        },
-                        returnFlight: {
-                          departureTime: "",
-                          arrivalTime: "",
-                          airline: "",
-                          flightNumber: "",
-                        },
+            images: deal.images || [],
+            tag: deal.tag || "",
+            LowDeposite: deal.LowDeposite || "",
+            videos: deal.videos || [],
+            prices: deal.prices.length
+              ? deal.prices.map((p) => ({
+                  ...p,
+                  airport: Array.isArray(p.airport)
+                    ? p.airport.map((a) =>
+                        typeof a === "object" ? a._id : a,
+                      )
+                    : [],
+                  startdate: p.startdate.split("T")[0], // Convert to YYYY-MM-DD
+                  enddate: p.enddate.split("T")[0], // Convert to YYYY-MM-DD
+                  hotel:
+                    p.hotel && typeof p.hotel === "object"
+                      ? p.hotel._id
+                      : p.hotel,
+                }))
+              : [
+                  {
+                    country: "",
+                    priceswitch: false,
+                    airport: [],
+                    hotel: "",
+                    startdate: "", // Ensure this is initialized as an empty string
+                    enddate: "", // Ensure this is initialized as an empty string
+                    price: 0,
+                    flightDetails: {
+                      outbound: {
+                        departureTime: "",
+                        arrivalTime: "",
+                        airline: "",
+                        flightNumber: "",
+                      },
+                      returnFlight: {
+                        departureTime: "",
+                        arrivalTime: "",
+                        airline: "",
+                        flightNumber: "",
                       },
                     },
-                  ],
+                  },
+                ],
         }
       : {
           title: "",
@@ -389,18 +397,22 @@ export const ManageDeals = () => {
           ],
         },
     );
+    setNewImages([]);
+    setNewVideos([]);
     setOpenDialog(true);
+    setImageError("");
+    setVideoError("");
   };
 
   const handleCloseDialog = () => {
-    setOpenDialog(false);
     setCurrentDeal(null);
-    setAlert({ message: "", type: "" });
-    setIsSubmitting(false);
-    setNewImages([]); // Reset newImages when closing dialog
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""; // Clear the file input
-    }
+    setNewImages([]);
+    setNewVideos([]);
+    setDeletedImages([]);
+    setDeletedVideos([]);
+    setOpenDialog(false);
+    setImageError("");
+    setVideoError("");
   };
 
   const handleOpenViewDialog = (deal) => {
@@ -415,89 +427,92 @@ export const ManageDeals = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Prevent duplicate submissions
     if (isSubmitting) return;
-    
-    // Check if there's an image error before proceeding
-    if (imageError) {
-      setAlert({ message: imageError, type: "red" });
-      return;
-    }
-    
-    if (formData.availableCountries.length === 0) {
-      setAlert({
-        message: "Please select at least one available country.",
-        type: "red",
-      });
-      return;
-    }
+
+    // Create a new FormData object
+    const formSubmission = new FormData();
+
+    // Deep copy and prepare data, excluding files that will be handled separately
+    const dataToSubmit = { ...formData };
+    delete dataToSubmit.images;
+    delete dataToSubmit.videos;
+
+    // Append the JSON data, including arrays of deleted media
+    formSubmission.append("data", JSON.stringify({
+      ...dataToSubmit,
+      deletedImages,
+      deletedVideos,
+    }));
+
+    // Append new image files
+    newImages.forEach(file => {
+      formSubmission.append("images", file);
+    });
+
+    // Append new video files
+    newVideos.forEach(file => {
+      formSubmission.append("videos", file);
+    });
 
     setIsSubmitting(true);
     setLoading(true);
-    
-    const formDataToSubmit = new FormData();
-    formDataToSubmit.append("data", JSON.stringify(formData));
-    if (newImages && newImages.length > 0) {
-      for (let i = 0; i < newImages.length; i++) {
-        formDataToSubmit.append("images", newImages[i]);
-      }
-    }
 
     try {
       if (currentDeal) {
-        await axios.put(`/deals/${currentDeal._id}`, formDataToSubmit, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+        // Update existing deal
+        await axios.put(`/deals/${currentDeal._id}`, formSubmission, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
-        setAlert({ message: "Deal updated successfully!", type: "green" });
+        setAlert({ message: "Deal updated successfully", type: "green" });
       } else {
-        await axios.post("/deals", formDataToSubmit, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+        // Create new deal
+        await axios.post("/deals", formSubmission, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
-        setAlert({ message: "Deal added successfully!", type: "green" });
+        setAlert({ message: "Deal created successfully", type: "green" });
       }
       fetchDeals();
-      setNewImages([]); // Reset newImages after successful submission
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""; // Clear the file input
-      }
       handleCloseDialog();
     } catch (error) {
       console.error("Error saving deal:", error);
-      const errorMessage =
-        error.response?.data?.message || error.message || "Error saving deal";
+      const errorMessage = error.response?.data?.message || "An error occurred while saving the deal.";
       setAlert({ message: errorMessage, type: "red" });
     } finally {
-      setLoading(false);
       setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   const handleRemoveImage = async (indexToRemove, imageUrl) => {
-    try {
-      const dealId = formData._id;
-      console.log("Removing image from deal ID:", dealId);
-      await axios.delete(`/deals/image/${dealId}`, {
-        data: { imageUrl },
-      });
+    setImageError("");
+    const isNewImage = typeof imageUrl !== 'string';
 
-      // Optimistically update the UI
-      setFormData((prevData) => ({
-        ...prevData,
-        images: prevData.images.filter((_, index) => index !== indexToRemove),
-      }));
-      fetchDeals();
-    } catch (error) {
-      console.error("Error deleting image:", error);
-      setAlert({ 
-        message: error.response?.data?.message || "Error deleting image", 
-        type: "red" 
-      });
+    if (isNewImage) {
+        setNewImages(prev => prev.filter((_, i) => i !== indexToRemove - (formData.images.length - newImages.length)));
+    } else {
+        setDeletedImages(prev => [...prev, imageUrl]);
     }
+    
+    setFormData(prev => ({
+        ...prev,
+        images: prev.images.filter((_, i) => i !== indexToRemove)
+    }));
+  };
+
+  const handleRemoveVideo = (indexToRemove, videoUrl) => {
+    setVideoError("");
+    const isNewVideo = typeof videoUrl !== 'string';
+
+    if (isNewVideo) {
+        setNewVideos(prev => prev.filter((_, i) => i !== indexToRemove - (formData.videos.length - newVideos.length)));
+    } else {
+        setDeletedVideos(prev => [...prev, videoUrl]);
+    }
+
+    setFormData(prev => ({
+        ...prev,
+        videos: prev.videos.filter((_, i) => i !== indexToRemove)
+    }));
   };
 
   const confirmDelete = (id, name) => {
@@ -604,6 +619,10 @@ export const ManageDeals = () => {
 
   // Function to validate all images in a file list
   const validateImages = (files) => {
+    if (formData.images.length + files.length > 10) {
+      setImageError("You can upload a maximum of 10 images.");
+      return false;
+    }
     for (let i = 0; i < files.length; i++) {
       const error = validateImage(files[i]);
       if (error) {
@@ -648,6 +667,30 @@ export const ManageDeals = () => {
         [dropdown]: value
       }));
     }
+  };
+
+  const validateVideo = (file) => {
+    const validTypes = ["video/mp4", "video/mpeg", "video/quicktime", "video/x-matroska", "video/x-msvideo"];
+    if (!validTypes.includes(file.type)) {
+      setVideoError("Invalid file type. Only MP4, MPEG, MOV, MKV, AVI allowed.");
+      return false;
+    }
+    if (file.size > 50 * 1024 * 1024) { // 50MB
+      setVideoError("File is too large. Max 50MB.");
+      return false;
+    }
+    return true;
+  };
+
+  const validateVideos = (files) => {
+    if (formData.videos.length + files.length > 3) {
+      setVideoError("You can upload a maximum of 3 videos.");
+      return false;
+    }
+    for (const file of files) {
+      if (!validateVideo(file)) return false;
+    }
+    return true;
   };
 
   return (
@@ -2089,6 +2132,66 @@ export const ManageDeals = () => {
                 </div>
               )}
             </div>
+
+            {/* Video Upload Section */}
+            <div>
+              <Typography variant="h6" color="blue-gray" className="mb-2">
+                Videos (Max 3)
+              </Typography>
+              <div className="flex items-center gap-4">
+                <Input
+                  type="file"
+                  label="Upload Videos"
+                  multiple
+                  accept="video/mp4,video/mpeg,video/quicktime,video/x-matroska,video/x-msvideo"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    if (validateVideos(files)) {
+                      setNewVideos(prev => [...prev, ...files]);
+                      setFormData(prev => ({
+                        ...prev,
+                        videos: [...prev.videos, ...files.map(f => URL.createObjectURL(f))]
+                      }));
+                      setVideoError("");
+                    }
+                  }}
+                />
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-4">
+                {formData.videos && formData.videos.length > 0 ? (
+                  formData.videos.map((video, index) => (
+                    <div key={index} className="relative">
+                      <video
+                        controls
+                        src={typeof video === "string" ? video : video}
+                        alt={`preview ${index}`}
+                        className="h-24 w-full rounded-md object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveVideo(index, video)}
+                        className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white"
+                      >
+                        <XMarkIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="font-semibold"
+                  >
+                    No videos to preview
+                  </Typography>
+                )}
+              </div>
+              {videoError && (
+                <Alert color="red" className="mt-2">
+                  {videoError}
+                </Alert>
+              )}
+            </div>
           </form>
         </DialogBody>
         <DialogFooter>
@@ -2752,6 +2855,35 @@ export const ManageDeals = () => {
                   </div>
                 </CardBody>
               </Card>
+
+              {/* Videos Section */}
+              <div className="mb-4">
+                <Typography variant="h6" color="blue-gray" className="mb-2">
+                  Videos
+                </Typography>
+                <div className="grid grid-cols-3 gap-4">
+                  {currentDeal?.videos?.length > 0 ? (
+                    currentDeal.videos.map((video, index) => (
+                      <div key={index} className="relative">
+                        <video
+                          controls
+                          src={video}
+                          alt={`deal video ${index}`}
+                          className="h-24 w-full rounded-md object-cover"
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <Typography
+                      variant="small"
+                      color="blue-gray"
+                      className="font-semibold"
+                    >
+                      No Videos Available
+                    </Typography>
+                  )}
+                </div>
+              </div>
             </div>
           ) : (
             <Typography variant="h6" className="text-black">

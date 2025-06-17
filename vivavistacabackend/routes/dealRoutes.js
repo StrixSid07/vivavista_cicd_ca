@@ -11,8 +11,7 @@ const {
   searchDeals,
   deleteDealImage
 } = require("../controllers/dealController");
-// const upload = require("../middleware/imageUpload");
-const { upload, uploadToS3 } = require("../middleware/imageUpload");
+const { uploadMedia } = require("../middleware/mediaUpload");
 
 const router = express.Router();
 
@@ -129,7 +128,7 @@ router.get("/:id", getDealById);
  *       403:
  *         description: Admin access required
  */
-router.post("/",protect, isAdmin, upload.array("images", 10), createDeal);
+router.post("/",protect, isAdmin, uploadMedia, createDeal);
 
 /**
  * @swagger
@@ -169,7 +168,7 @@ router.post("/",protect, isAdmin, upload.array("images", 10), createDeal);
  *       403:
  *         description: Admin access required
  */
-router.put("/:id",protect, isAdmin, upload.array("images", 10), updateDeal);
+router.put("/:id",protect, isAdmin, uploadMedia, updateDeal);
 
 /**
  * @swagger

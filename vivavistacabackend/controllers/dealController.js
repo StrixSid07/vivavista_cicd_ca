@@ -487,19 +487,69 @@ const getAllDealsAdmin = async (req, res) => {
 // ✅ Get a Single Deal (Only If Available in User's Selected Country)
 const getDealById = async (req, res) => {
   try {
-    const dealId = req.params.id;
-    let deal = await Deal.findById(dealId)
-      .populate("destination", "name")
-      .populate("hotels", "name")
-      .populate("boardBasis", "name");
+    console.log("Deal ID requested:", req.params.id);
+    
+    const deal = await Deal.findById(req.params.id)
+      .populate("destination")
+      .populate({
+        path: "destinations",
+        select: "name",
+      })
+      .populate({
+        path: "holidaycategories",
+        select: "name",
+      })
+      .populate({
+        path: "boardBasis",
+        select: "name",
+      })
+      .populate({
+        path: "hotels",
+        select: "name stars about rooms tripAdvisorRating facilities location images tripAdvisorPhotos tripAdvisorReviews tripAdvisorLatestReviews tripAdvisorLink externalBookingLink",
+      })
+      .populate({
+        path: "prices.hotel",
+        select: "name tripAdvisorRating tripAdvisorReviews",
+      })
+      .populate({
+        path: "prices.airport",
+        select: "name code location category",
+      });
+
+    console.log("Raw deal data:", JSON.stringify(deal, null, 2));
 
     if (!deal) {
+      console.log("Deal not found");
       return res.status(404).json({ message: "Deal not found" });
     }
 
-    res.json(deal);
+    // Filter prices for future dates
+    const today = new Date();
+    const threeDaysFromNow = new Date(today);
+    threeDaysFromNow.setDate(today.getDate() + 3);
+
+    let filteredPrices = deal.prices.filter((price) => {
+      const startDate = new Date(price.startdate);
+      return startDate >= threeDaysFromNow;
+    });
+
+    console.log("Filtered prices count:", filteredPrices.length);
+
+    // Sort prices by startdate
+    filteredPrices.sort((a, b) => new Date(a.startdate) - new Date(b.startdate));
+
+    // Create a new deal object with filtered prices
+    const dealWithFilteredPrices = {
+      ...deal.toObject(),
+      prices: filteredPrices,
+    };
+
+    console.log("Final deal data:", JSON.stringify(dealWithFilteredPrices, null, 2));
+
+    return res.json(dealWithFilteredPrices);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Error in getDealById:", error);
+    res.status(500).json({ message: "Error fetching deal", error: error.message });
   }
 };
 

@@ -360,6 +360,11 @@ const getAllDeals = async (req, res) => {
           path: "prices.hotel",
           select: "name tripAdvisorRating tripAdvisorReviews",
         })
+        .populate("prices.airport")
+        .populate({
+          path: "prices.airport",
+          select: "name code location category"
+        })
         .select(
           "title tag priceswitch boardBasis LowDeposite availableCountries description rooms guests prices distanceToCenter distanceToBeach days images isTopDeal isHotdeal isFeatured holidaycategories itinerary whatsIncluded exclusiveAdditions termsAndConditions destinations"
         )
@@ -430,6 +435,22 @@ const getAllDeals = async (req, res) => {
       }
       return deal;
     });
+
+    // Expand prices by each airport if it's an array
+    const expandedPrices = [];
+    deal.prices.forEach(priceObj => {
+      if (Array.isArray(priceObj.airport)) {
+        for (const airport of priceObj.airport) {
+          expandedPrices.push({
+            ...priceObj.toObject(),
+            airport: airport
+          });
+        }
+      } else {
+        expandedPrices.push(priceObj);
+      }
+    });
+    deal.prices = expandedPrices;
 
     console.log("🚀 ~ getAllDeals ~ deals:", deals);
     res.json(deals);

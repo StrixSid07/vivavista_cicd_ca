@@ -94,8 +94,15 @@ const FilterElement = ({
 
   // Get unique airports based on `_id`
   const uniqueDepartureAirports = [
-    ...new Set(flatDepartureAirports.map((airport) => airport._id)),
-  ].map((id) => flatDepartureAirports.find((airport) => airport._id === id));
+    ...new Set(flatDepartureAirports.map((airport) => 
+      typeof airport === 'string' ? airport : airport._id
+    )),
+  ].map((id) => {
+    const airport = flatDepartureAirports.find((a) => 
+      (typeof a === 'string' ? a : a._id) === id
+    );
+    return typeof airport === 'string' ? { _id: airport, name: airport } : airport;
+  });
 
   console.log("THIS IS UNIQUE", uniqueDepartureAirports);
   const handleDecrement = () => {
@@ -159,13 +166,17 @@ useEffect(() => {
   useEffect(() => {
     // Only run if prices are available
     if (prices && prices.length > 0) {
-      // Filter out prices with priceswitch=true
-      const validPrices = prices.filter(price => !price.priceswitch);
+      // Filter out prices with priceswitch=true and ensure valid airport data
+      const validPrices = prices.filter(price => 
+        !price.priceswitch && 
+        price.airport && 
+        (typeof price.airport === 'object' || typeof price.airport === 'string' || Array.isArray(price.airport))
+      );
       
       if (validPrices.length > 0) {
         // Find the cheapest price
         const cheapestPrice = validPrices.reduce((cheapest, current) => {
-          return current.price < cheapest.price ? current : cheapest;
+          return (current.price < cheapest.price) ? current : cheapest;
         }, validPrices[0]);
         
         console.log("Setting initial cheapest price:", cheapestPrice.price);
@@ -193,8 +204,7 @@ useEffect(() => {
         }
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prices]); // Run when prices are loaded
+  }, [prices, onDateChange, onAirportChange, setLeadPrice]);
 
   // Function to safely update price in both React state and DOM
   const updatePrice = (newPrice) => {

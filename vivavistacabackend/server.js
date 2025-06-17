@@ -12,6 +12,10 @@ const fs = require("fs");
 const https = require("https");
 const swaggerDocs = require("./config/swagger");
 const path = require("path"); // ✅ Import path module
+const reportRoutes = require("./routes/reportRoutes");
+const { getDBCredentials } = require("./config/db");
+const { ensureUploadDirectories } = require("./middleware/imageProcessor");
+require('./workers/videoWorker'); // Start the video processing worker
 
 // Initialize Redis client
 const client = redis.createClient();

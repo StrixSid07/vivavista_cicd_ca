@@ -32,7 +32,7 @@ const convertToWebm = (filePath, options = { component: 'general' }) => {
 
       ffmpeg(filePath)
         .outputOptions('-c:v libvpx-vp9')
-        .outputOptions('-crf 30')
+        .outputOptions('-crf 35')
         .outputOptions('-b:v 0')
         .outputOptions('-c:a libopus')
         .output(webmPath)

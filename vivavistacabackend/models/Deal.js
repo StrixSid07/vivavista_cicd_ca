@@ -16,7 +16,16 @@ const DealSchema = new mongoose.Schema(
     title: { type: String, required: true },
     description: { type: String, required: true },
     images: [{ type: String }], // Image URLs
-    videos: [{ type: String }], // Video URLs
+    videos: [
+      {
+        url: { type: String },
+        status: {
+          type: String,
+          enum: ["processing", "ready", "failed"],
+          default: "processing",
+        },
+      },
+    ], // Video URLs
     availableCountries: [{ type: String, required: true }], // ['UK', 'USA', 'Canada']
     destination: {
       type: mongoose.Schema.Types.ObjectId,

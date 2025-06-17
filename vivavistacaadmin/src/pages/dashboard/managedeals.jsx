@@ -20,6 +20,7 @@ import {
   MenuHandler,
   MenuList,
   MenuItem,
+  Progress,
 } from "@material-tailwind/react";
 import {
   PencilSquareIcon,
@@ -108,6 +109,9 @@ export const ManageDeals = () => {
   const [newVideos, setNewVideos] = useState([]);
   const [deletedImages, setDeletedImages] = useState([]);
   const [deletedVideos, setDeletedVideos] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [progressStatus, setProgressStatus] = useState("");
+  const [processingInterval, setProcessingInterval] = useState(null);
 
   // Add this state for custom dropdowns
   const [customDropdownOpen, setCustomDropdownOpen] = useState({
@@ -454,32 +458,62 @@ export const ManageDeals = () => {
       formSubmission.append("videos", file);
     });
 
+    if (processingInterval) clearInterval(processingInterval);
     setIsSubmitting(true);
     setLoading(true);
+    setUploadProgress(0);
+    setProgressStatus("Uploading...");
+
+    const config = {
+      headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: (progressEvent) => {
+        const percentCompleted = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
+        );
+        // Cap upload progress at 90% for the first stage
+        setUploadProgress(Math.min(percentCompleted, 90));
+
+        if (percentCompleted === 100) {
+          setProgressStatus("Processing... Please wait.");
+          // Start a slow increment for the processing phase
+          const interval = setInterval(() => {
+            setUploadProgress(prev => {
+              if (prev >= 99) {
+                clearInterval(interval);
+                return 99;
+              }
+              return prev + 1;
+            });
+          }, 800);
+          setProcessingInterval(interval);
+        }
+      },
+    };
 
     try {
       if (currentDeal) {
-        // Update existing deal
-        await axios.put(`/deals/${currentDeal._id}`, formSubmission, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await axios.put(`/deals/${currentDeal._id}`, formSubmission, config);
         setAlert({ message: "Deal updated successfully", type: "green" });
       } else {
-        // Create new deal
-        await axios.post("/deals", formSubmission, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await axios.post("/deals", formSubmission, config);
         setAlert({ message: "Deal created successfully", type: "green" });
       }
-      fetchDeals();
-      handleCloseDialog();
+      if (processingInterval) clearInterval(processingInterval);
+      setUploadProgress(100);
+      setTimeout(() => {
+        fetchDeals();
+        handleCloseDialog();
+      }, 500);
     } catch (error) {
       console.error("Error saving deal:", error);
       const errorMessage = error.response?.data?.message || "An error occurred while saving the deal.";
       setAlert({ message: errorMessage, type: "red" });
     } finally {
+      if (processingInterval) clearInterval(processingInterval);
       setIsSubmitting(false);
       setLoading(false);
+      setUploadProgress(0);
+      setProgressStatus("");
     }
   };
 
@@ -2161,12 +2195,20 @@ export const ManageDeals = () => {
                 {formData.videos && formData.videos.length > 0 ? (
                   formData.videos.map((video, index) => (
                     <div key={index} className="relative">
-                      <video
-                        controls
-                        src={typeof video === "string" ? video : video}
-                        alt={`preview ${index}`}
-                        className="h-24 w-full rounded-md object-cover"
-                      />
+                      {video.status === 'ready' ? (
+                        <video
+                          controls
+                          src={video.url}
+                          alt={`preview ${index}`}
+                          className="h-24 w-full rounded-md object-cover"
+                        />
+                      ) : (
+                        <div className="h-24 w-full flex items-center justify-center rounded-md bg-gray-200">
+                          <Typography variant="small" color="blue-gray">
+                            {video.status === 'processing' ? 'Processing...' : 'Failed'}
+                          </Typography>
+                        </div>
+                      )}
                       <button
                         type="button"
                         onClick={() => handleRemoveVideo(index, video)}
@@ -2194,19 +2236,29 @@ export const ManageDeals = () => {
             </div>
           </form>
         </DialogBody>
-        <DialogFooter>
-          <Button
-            onClick={handleCloseDialog}
-            color="red"
-            className="mr-2"
-            variant="text"
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} color="green" disabled={loading || isSubmitting}>
-            {loading ? "Saving..." : "Save"}
-          </Button>
+        <DialogFooter className="flex-col items-center justify-center gap-2">
+          {isSubmitting && uploadProgress > 0 && (
+            <div className="w-full">
+              <Progress value={uploadProgress} color="blue" label=" " />
+              <Typography variant="small" color="blue-gray" className="text-center">
+                {progressStatus} {uploadProgress < 100 ? `${uploadProgress}%` : ""}
+              </Typography>
+            </div>
+          )}
+          <div className="flex justify-end w-full">
+            <Button
+              onClick={handleCloseDialog}
+              color="red"
+              className="mr-2"
+              variant="text"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} color="green" disabled={loading || isSubmitting}>
+              {loading ? "Saving..." : "Save"}
+            </Button>
+          </div>
         </DialogFooter>
       </Dialog>
 
@@ -2865,12 +2917,20 @@ export const ManageDeals = () => {
                   {currentDeal?.videos?.length > 0 ? (
                     currentDeal.videos.map((video, index) => (
                       <div key={index} className="relative">
-                        <video
-                          controls
-                          src={video}
-                          alt={`deal video ${index}`}
-                          className="h-24 w-full rounded-md object-cover"
-                        />
+                        {video.status === 'ready' ? (
+                          <video
+                            controls
+                            src={video.url}
+                            alt={`deal video ${index}`}
+                            className="h-24 w-full rounded-md object-cover"
+                          />
+                        ) : (
+                          <div className="h-24 w-full flex items-center justify-center rounded-md bg-gray-200">
+                            <Typography variant="small" color="blue-gray">
+                              {video.status === 'processing' ? 'Processing...' : 'Failed'}
+                            </Typography>
+                          </div>
+                        )}
                       </div>
                     ))
                   ) : (

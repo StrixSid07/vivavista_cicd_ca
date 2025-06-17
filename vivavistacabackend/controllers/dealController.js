@@ -4,7 +4,8 @@ const Airport = require("../models/Airport");
 const Hotel = require("../models/Hotel");
 const Destination = require("../models/Destination");
 const { processUploadedFile, deleteImage } = require("../middleware/imageUpload");
-const { convertToWebm, deleteLocalVideo } = require("../middleware/videoProcessor");
+const { deleteLocalVideo } = require("../middleware/videoProcessor");
+const { videoQueue } = require('../config/queue');
 
 // Maximum number of featured deals allowed
 const MAX_FEATURED_DEALS = 21;
@@ -153,18 +154,20 @@ const createDeal = async (req, res) => {
     // Extract image URLs
     let imageUrls = [];
     if (req.files && req.files.images && req.files.images.length) {
-      // Process each uploaded file and convert to WebP
       imageUrls = await Promise.all(
         req.files.images.map((file) => processUploadedFile(file, 'deal'))
       );
     }
 
-    // Extract video URLs
-    let videoUrls = [];
+    // Prepare video data without processing
+    const videoData = [];
     if (req.files && req.files.videos && req.files.videos.length) {
-      videoUrls = await Promise.all(
-        req.files.videos.map((file) => convertToWebm(file.path, { component: 'dealvideos' }))
-      );
+      req.files.videos.forEach(file => {
+        videoData.push({
+          url: file.path, // Temporary path
+          status: 'processing',
+        });
+      });
     }
 
     // Create deal
@@ -172,7 +175,7 @@ const createDeal = async (req, res) => {
       title,
       description,
       images: imageUrls,
-      videos: videoUrls,
+      videos: videoData,
       availableCountries,
       destination,
       destinations,
@@ -198,6 +201,19 @@ const createDeal = async (req, res) => {
     });
 
     await newDeal.save();
+    
+    // Add video processing jobs to the queue
+    if (newDeal.videos && newDeal.videos.length > 0) {
+      newDeal.videos.forEach(video => {
+        if (video.status === 'processing') {
+          videoQueue.add('process-video', {
+            dealId: newDeal._id,
+            videoId: video._id,
+            tempFilePath: video.url,
+          });
+        }
+      });
+    }
 
     // Link to single destination (legacy support)
     if (destination && mongoose.Types.ObjectId.isValid(destination)) {
@@ -497,10 +513,12 @@ const updateDeal = async (req, res) => {
 
     // Handle New Video Uploads
     if (req.files && req.files.videos && req.files.videos.length > 0) {
-      const newVideoUrls = await Promise.all(
-        req.files.videos.map((file) => convertToWebm(file.path, { component: 'dealvideos' }))
-      );
-      deal.videos.push(...newVideoUrls);
+      req.files.videos.forEach(file => {
+        deal.videos.push({
+          url: file.path, // Temporary path
+          status: 'processing',
+        });
+      });
     }
     
     // Update other deal fields
@@ -516,6 +534,21 @@ const updateDeal = async (req, res) => {
     }
 
     const updatedDeal = await deal.save();
+
+    // Add new video processing jobs to the queue
+    if (updatedDeal.videos && updatedDeal.videos.length > 0) {
+      updatedDeal.videos.forEach(video => {
+        // Find the original file from req.files to check if it's a new upload
+        const isNew = req.files.videos.some(f => f.path === video.url);
+        if (video.status === 'processing' && isNew) {
+            videoQueue.add('process-video', {
+                dealId: updatedDeal._id,
+                videoId: video._id,
+                tempFilePath: video.url,
+            });
+        }
+      });
+    }
 
     res.status(200).json({ message: "Deal updated successfully", deal: updatedDeal });
   } catch (error) {

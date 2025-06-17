@@ -21,6 +21,7 @@ const FilterPage = () => {
   const navigate = useNavigate();
   const [tripData, setTripData] = useState({});
   const [images, setImages] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [prices, setPrices] = useState([]);
   const [hotels, setHotels] = useState([]);
   const [availableCountries, setAvailableCountries] = useState([]);
@@ -100,6 +101,7 @@ const FilterPage = () => {
       .then((res) => {
         const data = res.data;
         console.log("this is fetch filter page data", data);
+        console.log("Videos from API:", data.videos);
         // Map trip details
         setTripData({
           title: data.title,
@@ -120,6 +122,10 @@ const FilterPage = () => {
 
         // Set images
         setImages(data.images || []);
+        
+        // Set videos (only include ready videos)
+        setVideos(data.videos?.filter(video => video.status === "ready") || []);
+        
         // Transform prices data
         setPrices(
           data.prices.map((price) => ({
@@ -265,7 +271,7 @@ const FilterPage = () => {
     <div className="z-50 flex flex-col justify-center items-center w-full">
       <div className="">
         <div className="relative">
-          <ImageGallery2 images={images} />
+          <ImageGallery2 images={images} videos={videos} />
         </div>
         <div className="flex flex-col md:flex-row justify-between gap-2 items-start p-3 -mb-6 md:p-2 md:mb-0">
           <div

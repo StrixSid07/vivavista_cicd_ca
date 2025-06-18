@@ -16,6 +16,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
   MapPinIcon,
+  PlusCircleIcon,
 } from "@heroicons/react/24/outline";
 import axios from "@/utils/axiosInstance";
 
@@ -31,6 +32,17 @@ export function ManageDestination() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const [deleteInProgress, setDeleteInProgress] = useState(false);
+  
+  // Places management
+  const [openPlacesDialog, setOpenPlacesDialog] = useState(false);
+  const [places, setPlaces] = useState([]);
+  const [currentPlace, setCurrentPlace] = useState(null);
+  const [openPlaceDialog, setOpenPlaceDialog] = useState(false);
+  const [placeFormData, setPlaceFormData] = useState({
+    name: ""
+  });
+  const [activePlacesDestinationId, setActivePlacesDestinationId] = useState(null);
+  const [placesAddedCount, setPlacesAddedCount] = useState(0);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -54,6 +66,16 @@ export function ManageDestination() {
     } catch (error) {
       console.error("Error fetching destinations:", error);
       setAlert({ message: "Error fetching destinations", type: "red" });
+    }
+  };
+  
+  const fetchPlaces = async (destinationId) => {
+    try {
+      const response = await axios.get(`/destinations/${destinationId}/places`);
+      setPlaces(response.data);
+    } catch (error) {
+      console.error("Error fetching places:", error);
+      setAlert({ message: "Error fetching places", type: "red" });
     }
   };
 
@@ -234,6 +256,139 @@ export function ManageDestination() {
       setDeleteInProgress(false);
     }
   };
+  
+  // Places management functions
+  const handleOpenPlacesDialog = async (destination) => {
+    if (buttonDisabled) return;
+    
+    setButtonDisabled(true);
+    setTimeout(() => setButtonDisabled(false), 500);
+    
+    setCurrentDestination(destination);
+    setActivePlacesDestinationId(destination._id);
+    await fetchPlaces(destination._id);
+    setOpenPlacesDialog(true);
+  };
+  
+  const handleClosePlacesDialog = () => {
+    setOpenPlacesDialog(false);
+    setPlaces([]);
+    // Keep the activePlacesDestinationId for potential place operations
+  };
+  
+  const handleOpenPlaceDialog = (place = null) => {
+    setCurrentPlace(place);
+    setPlaceFormData(
+      place
+        ? {
+            name: place.name
+          }
+        : {
+            name: ""
+          }
+    );
+    // Reset the counter when opening the dialog for adding new places
+    if (!place) {
+      setPlacesAddedCount(0);
+    }
+    setOpenPlaceDialog(true);
+  };
+  
+  const handleClosePlaceDialog = () => {
+    setOpenPlaceDialog(false);
+    setCurrentPlace(null);
+    setPlacesAddedCount(0);
+    setAlert({ message: "", type: "" });
+  };
+  
+  const handlePlaceSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    const trimmedName = placeFormData.name.trim();
+    if (!trimmedName) {
+      setAlert({ message: "Place name is required", type: "red" });
+      return;
+    }
+    
+    // Use activePlacesDestinationId as a fallback if currentDestination is not available
+    const destinationId = currentDestination?._id || activePlacesDestinationId;
+    
+    // Debug log
+    console.log("Current destination:", currentDestination);
+    console.log("Active places destination ID:", activePlacesDestinationId);
+    console.log("Using destination ID:", destinationId);
+    
+    // Check if we have a valid destination ID
+    if (!destinationId) {
+      console.error("No destination ID available");
+      setAlert({ message: "No destination selected", type: "red" });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setLoading(true);
+    
+    try {
+      if (currentPlace) {
+        // Update existing place
+        await axios.put(
+          `/destinations/${destinationId}/places/${currentPlace._id}`,
+          { name: trimmedName }
+        );
+        setAlert({ message: "Place updated successfully!", type: "green" });
+        // Close dialog after updating
+        handleClosePlaceDialog();
+      } else {
+        // Add new place
+        console.log(`Adding place to destination ID: ${destinationId}`);
+        await axios.post(
+          `/destinations/${destinationId}/places`,
+          { name: trimmedName }
+        );
+        
+        // Increment the counter
+        setPlacesAddedCount(prev => prev + 1);
+        
+        setAlert({ message: `Place added successfully! (${placesAddedCount + 1} added in this session)`, type: "green" });
+        
+        // Keep the dialog open for adding more places
+        // Just clear the form for the next entry
+        setPlaceFormData({ name: "" });
+        setCurrentPlace(null);
+      }
+      
+      // Refresh places list
+      await fetchPlaces(destinationId);
+    } catch (error) {
+      console.error("Error saving place:", error);
+      setAlert({ message: "Error saving place", type: "red" });
+    } finally {
+      setLoading(false);
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleDeletePlace = async (placeId) => {
+    // Use activePlacesDestinationId as a fallback if currentDestination is not available
+    const destinationId = currentDestination?._id || activePlacesDestinationId;
+    
+    // Check if we have a valid destination ID
+    if (!destinationId) {
+      console.error("No destination ID available");
+      setAlert({ message: "No destination selected", type: "red" });
+      return;
+    }
+    
+    try {
+      await axios.delete(`/destinations/${destinationId}/places/${placeId}`);
+      setAlert({ message: "Place deleted successfully!", type: "green" });
+      await fetchPlaces(destinationId);
+    } catch (error) {
+      console.error("Error deleting place:", error);
+      setAlert({ message: "Error deleting place", type: "red" });
+    }
+  };
 
   return (
     <div className="h-screen w-full overflow-hidden px-4 py-6">
@@ -264,81 +419,80 @@ export function ManageDestination() {
               key={destination._id}
               className="group p-4 shadow-md transition-colors duration-300 ease-in-out hover:bg-blue-50"
             >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex-1">
-                  <Typography
-                    variant="h5"
-                    color="deep-orange"
-                    className="flex items-center gap-2"
-                  >
-                    <MapPinIcon
-                      strokeWidth={3}
-                      className="h-5 w-5 text-deep-orange-600"
+              <div className="flex flex-col md:flex-row">
+                {/* Image section */}
+                <div className="md:w-1/4">
+                  {destination.image ? (
+                    <img
+                      src={destination.image}
+                      alt={destination.name}
+                      className="h-48 w-full cursor-pointer rounded-lg object-cover"
+                      onClick={() => handleImageClick(destination.image)}
                     />
-                    {destination.name}
-                  </Typography>
-                  <Typography
-                    className={`mt-1 font-medium ${
-                      destination.isPopular ? "text-blue-600" : "text-gray-500"
-                    }`}
-                  >
-                    {destination.isPopular
-                      ? "Popular Destination"
-                      : "Regular Destination"}
-                  </Typography>
+                  ) : (
+                    <div className="flex h-48 w-full items-center justify-center rounded-lg bg-gray-200">
+                      <MapPinIcon className="h-12 w-12 text-gray-400" />
+                    </div>
+                  )}
                 </div>
 
-                <div className="w-full sm:w-48">
-                  <img
-                    src={destination.image}
-                    alt={destination.name}
-                    onClick={() => handleImageClick(destination.image)}
-                    className="h-32 w-full cursor-pointer rounded-md object-cover shadow-sm transition-all duration-500 ease-in-out group-hover:scale-105"
-                  />
-                </div>
+                {/* Content section */}
+                <div className="mt-4 flex flex-1 flex-col justify-between p-2 md:mt-0 md:p-4">
+                  <div>
+                    <Typography variant="h5" color="blue-gray" className="mb-2">
+                      {destination.name}
+                    </Typography>
 
-                <div className="flex items-center gap-4">
-                  <Tooltip
-                    content="Edit"
-                    placement="top"
-                    className="font-medium text-green-600"
-                    animate={{
-                      mount: { scale: 1, y: 0 },
-                      unmount: { scale: 0, y: 25 },
-                    }}
-                  >
+                    <div className="mb-2 flex items-center">
+                      <Typography
+                        variant="small"
+                        color={destination.isPopular ? "green" : "gray"}
+                        className="font-medium"
+                      >
+                        {destination.isPopular ? "Popular Destination" : "Standard Destination"}
+                      </Typography>
+                    </div>
+                    
+                    <div className="mb-2">
+                      <Typography variant="small" color="gray">
+                        Places: {destination.places?.length || 0}
+                      </Typography>
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <Button
-                      variant="text"
-                      color="green"
+                      size="sm"
+                      variant="outlined"
+                      color="blue"
+                      className="flex items-center gap-2"
                       onClick={() => handleOpenDialog(destination)}
-                      className="p-2"
-                      disabled={buttonDisabled}
                     >
-                      <PencilSquareIcon className="h-5 w-5" />
+                      <PencilSquareIcon strokeWidth={2} className="h-4 w-4" />
+                      Edit
                     </Button>
-                  </Tooltip>
-                  <Tooltip
-                    content="Delete"
-                    placement="top"
-                    className="font-medium text-red-500"
-                    color="red"
-                    animate={{
-                      mount: { scale: 1, y: 0 },
-                      unmount: { scale: 0, y: 25 },
-                    }}
-                  >
                     <Button
-                      variant="text"
+                      size="sm"
+                      variant="outlined"
                       color="red"
-                      onClick={() =>
-                        confirmDelete(destination._id, destination.name)
-                      }
-                      className="p-2"
-                      disabled={buttonDisabled}
+                      className="flex items-center gap-2"
+                      onClick={() => confirmDelete(destination._id, destination.name)}
                     >
-                      <TrashIcon className="h-5 w-5" />
+                      <TrashIcon strokeWidth={2} className="h-4 w-4" />
+                      Delete
                     </Button>
-                  </Tooltip>
+                    <Button
+                      size="sm"
+                      variant="outlined"
+                      color="green"
+                      className="flex items-center gap-2"
+                      onClick={() => handleOpenPlacesDialog(destination)}
+                    >
+                      <MapPinIcon strokeWidth={2} className="h-4 w-4" />
+                      Manage Places
+                    </Button>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -346,6 +500,7 @@ export function ManageDestination() {
         </div>
       </Card>
 
+      {/* Destination Dialog */}
       <Dialog open={openDialog} handler={handleCloseDialog} size="md">
         <DialogHeader className="flex items-center justify-between">
           {currentDestination ? "Edit Destination" : "Add Destination"}
@@ -373,89 +528,254 @@ export function ManageDestination() {
               required
               disabled={isSubmitting}
             />
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Upload Image
-              </label>
-              <div className="mb-1 text-xs text-blue-600">
-                Only JPG, JPEG, PNG formats allowed. Maximum size: 5MB.
-              </div>
-              <input
-                type="file"
-                accept="image/jpeg,image/jpg,image/png"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    if (validateImage(file)) {
-                      setFormData({
-                        ...formData,
-                        imageFile: file,
-                        imagePreview: URL.createObjectURL(file),
-                      });
-                    }
-                  }
-                }}
-                required={!currentDestination} // Required only for adding new
-                disabled={isSubmitting || (currentDestination?.image && !formData.imageFile)}
-                className="block w-full text-sm text-gray-900 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-600 hover:file:bg-blue-100"
-              />
-              {imageError && (
-                <div className="mt-1 text-sm text-red-500">{imageError}</div>
-              )}
-            </div>
 
-            {formData.imagePreview && (
-              <div className="relative mt-3 w-full p-2">
-                <img
-                  src={formData.imagePreview}
-                  alt="Preview"
-                  className="h-40 w-full rounded object-cover"
-                />
-                {/* Delete Icon */}
-                {currentDestination && (
-                  <button
-                    type="button"
-                    onClick={handleDeleteImage}
-                    className="absolute right-0 top-0 rounded-full bg-blue-100 p-1 text-white hover:bg-red-100"
-                    disabled={isSubmitting}
-                  >
-                    ❌
-                  </button>
-                )}
-              </div>
-            )}
-
-            <label className="flex items-center gap-2 pt-2 text-sm text-gray-700">
+            <div className="flex items-center gap-2">
               <Checkbox
+                id="isPopular"
                 checked={formData.isPopular}
                 onChange={(e) =>
                   setFormData({ ...formData, isPopular: e.target.checked })
                 }
-                color="blue"
                 disabled={isSubmitting}
               />
-              Is Popular Destination
-            </label>
+              <label
+                htmlFor="isPopular"
+                className="cursor-pointer text-gray-700"
+              >
+                Mark as Popular Destination
+              </label>
+            </div>
+
+            <div>
+              <Typography variant="small" className="mb-2 font-medium">
+                Destination Image
+              </Typography>
+              <div className="flex flex-col items-start gap-2">
+                {formData.imagePreview && (
+                  <div className="relative mb-2">
+                    <img
+                      src={formData.imagePreview}
+                      alt="Preview"
+                      className="h-40 w-full rounded-lg object-cover"
+                    />
+                    <Button
+                      size="sm"
+                      color="red"
+                      className="absolute right-2 top-2"
+                      onClick={handleDeleteImage}
+                      disabled={isSubmitting || !currentDestination}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/jpeg, image/jpg, image/png"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      if (validateImage(file)) {
+                        setFormData({
+                          ...formData,
+                          imageFile: file,
+                          imagePreview: URL.createObjectURL(file),
+                        });
+                      }
+                    }
+                  }}
+                  disabled={isSubmitting}
+                  className="w-full cursor-pointer rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-700 file:mr-4 file:rounded file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {imageError && (
+                  <Typography color="red" variant="small">
+                    {imageError}
+                  </Typography>
+                )}
+              </div>
+            </div>
           </form>
         </DialogBody>
         <DialogFooter>
-          <Button 
-            onClick={handleCloseDialog} 
-            color="red" 
+          <Button
             variant="text"
+            color="red"
+            onClick={handleCloseDialog}
+            className="mr-1"
             disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
-            color="green" 
-            disabled={loading || isSubmitting}
+          <Button
+            variant="gradient"
+            color="green"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
           >
-            {loading ? "Saving..." : "Save"}
+            {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <span className="mr-2">Saving...</span>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+              </div>
+            ) : currentDestination ? (
+              "Update"
+            ) : (
+              "Save"
+            )}
           </Button>
         </DialogFooter>
       </Dialog>
+      
+      {/* Places Management Dialog */}
+      <Dialog open={openPlacesDialog} handler={handleClosePlacesDialog} size="lg">
+        <DialogHeader className="flex items-center justify-between">
+          {currentDestination && `Manage Places for ${currentDestination.name}`}
+          <Button 
+            color="green" 
+            size="sm"
+            onClick={() => currentDestination ? handleOpenPlaceDialog() : setAlert({ message: "No destination selected", type: "red" })}
+          >
+            Add New Place
+          </Button>
+        </DialogHeader>
+        <DialogBody className="max-h-[70vh] overflow-y-auto">
+          {alert.message && (
+            <Alert
+              color={alert.type}
+              onClose={() => setAlert({ message: "", type: "" })}
+              className="mb-4"
+            >
+              {alert.message}
+            </Alert>
+          )}
+          
+          {places.length > 0 ? (
+            <div className="grid grid-cols-1 gap-2">
+              {places.map((place) => (
+                <Card key={place._id} className="p-3 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <Typography variant="h6">
+                      {place.name}
+                    </Typography>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        color="blue"
+                        variant="outlined"
+                        onClick={() => handleOpenPlaceDialog(place)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        color="red"
+                        variant="outlined"
+                        onClick={() => handleDeletePlace(place._id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-10">
+              <MapPinIcon className="h-16 w-16 text-gray-400" />
+              <Typography variant="h6" color="gray" className="mt-2">
+                No places added yet
+              </Typography>
+              <Typography variant="small" color="gray">
+                Click "Add New Place" to add places to this destination
+              </Typography>
+            </div>
+          )}
+        </DialogBody>
+        <DialogFooter>
+          <Button color="red" onClick={handleClosePlacesDialog}>
+            Close
+          </Button>
+        </DialogFooter>
+      </Dialog>
+      
+      {/* Add/Edit Place Dialog */}
+      <Dialog open={openPlaceDialog} handler={handleClosePlaceDialog} size="md">
+        <DialogHeader>
+          {currentPlace ? "Edit Place" : (
+            <div>
+              <div className="flex items-center gap-2">
+                <span>Add Places</span>
+                {placesAddedCount > 0 && (
+                  <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                    {placesAddedCount} added
+                  </span>
+                )}
+              </div>
+              <Typography variant="small" color="gray" className="mt-1">
+                You can add multiple places without closing this dialog
+              </Typography>
+            </div>
+          )}
+        </DialogHeader>
+        <DialogBody>
+          {alert.message && (
+            <Alert
+              color={alert.type}
+              onClose={() => setAlert({ message: "", type: "" })}
+              className="mb-4"
+            >
+              {alert.message}
+            </Alert>
+          )}
+          
+          <form onSubmit={handlePlaceSubmit} className="space-y-4">
+            <Input
+              label="Place Name"
+              value={placeFormData.name}
+              onChange={(e) => setPlaceFormData({ ...placeFormData, name: e.target.value })}
+              required
+              autoFocus
+            />
+            
+            {!currentPlace && placesAddedCount > 0 && (
+              <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
+                <p className="font-medium">Places added in this session:</p>
+                <p>{placesAddedCount} {placesAddedCount === 1 ? 'place' : 'places'} added successfully!</p>
+                <p className="mt-1 text-xs">Click "Done" when finished or continue adding more places.</p>
+              </div>
+            )}
+          </form>
+        </DialogBody>
+        <DialogFooter className="flex justify-between">
+          <Button
+            variant="text"
+            color="red"
+            onClick={handleClosePlaceDialog}
+            className="mr-1"
+            disabled={isSubmitting}
+          >
+            {currentPlace ? "Cancel" : "Done"}
+          </Button>
+          <Button
+            variant="gradient"
+            color="green"
+            onClick={handlePlaceSubmit}
+            disabled={isSubmitting || !placeFormData.name.trim()}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <span className="mr-2">Saving...</span>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+              </div>
+            ) : currentPlace ? (
+              "Update"
+            ) : (
+              "Add Place"
+            )}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
       <Dialog open={openImageDialog} handler={handleCloseImageDialog} size="xl">
         <DialogBody className="p-0">
           <img

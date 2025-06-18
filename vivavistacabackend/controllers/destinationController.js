@@ -23,6 +23,123 @@ exports.getDestinationDropdown = async (req, res) => {
   }
 };
 
+// Get places for a specific destination
+exports.getDestinationPlaces = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const destination = await Destination.findById(id);
+    
+    if (!destination) {
+      return res.status(404).json({ message: "Destination not found" });
+    }
+    
+    res.json(destination.places || []);
+  } catch (error) {
+    console.error("Error fetching places:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// Add a place to a destination
+exports.addPlaceToDestination = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ message: "Place name is required" });
+    }
+    
+    const destination = await Destination.findById(id);
+    
+    if (!destination) {
+      return res.status(404).json({ message: "Destination not found" });
+    }
+    
+    const newPlace = {
+      name
+    };
+    
+    destination.places.push(newPlace);
+    await destination.save();
+    
+    res.status(201).json({ 
+      message: "Place added successfully", 
+      place: newPlace 
+    });
+  } catch (error) {
+    console.error("Error adding place:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// Update a place within a destination
+exports.updatePlace = async (req, res) => {
+  try {
+    const { destinationId, placeId } = req.params;
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ message: "Place name is required" });
+    }
+    
+    const destination = await Destination.findById(destinationId);
+    
+    if (!destination) {
+      return res.status(404).json({ message: "Destination not found" });
+    }
+    
+    const placeIndex = destination.places.findIndex(
+      place => place._id.toString() === placeId
+    );
+    
+    if (placeIndex === -1) {
+      return res.status(404).json({ message: "Place not found" });
+    }
+    
+    destination.places[placeIndex].name = name;
+    
+    await destination.save();
+    
+    res.json({ 
+      message: "Place updated successfully", 
+      place: destination.places[placeIndex] 
+    });
+  } catch (error) {
+    console.error("Error updating place:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// Delete a place from a destination
+exports.deletePlace = async (req, res) => {
+  try {
+    const { destinationId, placeId } = req.params;
+    
+    const destination = await Destination.findById(destinationId);
+    
+    if (!destination) {
+      return res.status(404).json({ message: "Destination not found" });
+    }
+    
+    const placeIndex = destination.places.findIndex(
+      place => place._id.toString() === placeId
+    );
+    
+    if (placeIndex === -1) {
+      return res.status(404).json({ message: "Place not found" });
+    }
+    
+    destination.places.splice(placeIndex, 1);
+    await destination.save();
+    
+    res.json({ message: "Place deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting place:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 exports.deleteDestinationImage = async (req, res) => {
   const { destinationId } = req.params;
 
@@ -51,7 +168,7 @@ exports.deleteDestinationImage = async (req, res) => {
 };
 
 exports.addDestination = async (req, res) => {
-  const { name, isPopular } = req.body;
+  const { name, isPopular, places } = req.body;
   try {
     if (!name) {
       return res.status(400).json({ message: "name is required" });
@@ -67,6 +184,7 @@ exports.addDestination = async (req, res) => {
       name,
       isPopular,
       image: imageUrl,
+      places: places ? JSON.parse(places) : []
     });
     await destination.save();
     return res.status(201).json({ message: "created succefully destination" });
@@ -78,7 +196,7 @@ exports.addDestination = async (req, res) => {
 
 exports.updateDestination = async (req, res) => {
   const { id } = req.params;
-  const { name, isPopular } = req.body;
+  const { name, isPopular, places } = req.body;
 
   try {
     const destination = await Destination.findById(id);
@@ -96,6 +214,13 @@ exports.updateDestination = async (req, res) => {
     if (name) destination.name = name;
     if (typeof isPopular !== "undefined") destination.isPopular = isPopular;
     if (imageUrl) destination.image = imageUrl;
+    if (places) {
+      try {
+        destination.places = JSON.parse(places);
+      } catch (error) {
+        console.error("Error parsing places:", error);
+      }
+    }
 
     await destination.save();
     res.json({ message: "Destination updated successfully", destination });

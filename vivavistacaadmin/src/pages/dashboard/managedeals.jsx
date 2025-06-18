@@ -36,6 +36,10 @@ export const ManageDeals = () => {
   const [destinations, setDestinations] = useState([]);
   const [boardBasis, setBoardBasis] = useState([]);
   const [previewImages, setPreviewImages] = useState([]); // for showing all images
+  const [availablePlaces, setAvailablePlaces] = useState([]); // Store available places for selected destination
+  const [destinationPlaces, setDestinationPlaces] = useState({}); // Store places for each destination
+  const [selectedDestinationForPlaces, setSelectedDestinationForPlaces] = useState(null); // Track which destination we're selecting places for
+  const [destinationSelectedPlaces, setDestinationSelectedPlaces] = useState({}); // Map of destination ID to selected places
 
   const [airports, setAirports] = useState([]);
   const [hotels, setHotels] = useState([]);
@@ -49,6 +53,7 @@ export const ManageDeals = () => {
     availableCountries: [],
     destination: "",
     destinations: [],
+    selectedPlaces: [], // Array to store selected place IDs
     days: 0,
     rooms: 0,
     guests: 0,
@@ -118,6 +123,7 @@ export const ManageDeals = () => {
     holidayCategories: false,
     destinations: false,
     hotels: false,
+    places: false, // Add places dropdown state
     priceAirports: {} // Will store airport dropdown states by price index
   });
 
@@ -126,6 +132,7 @@ export const ManageDeals = () => {
     destinations: '',
     holidayCategories: '',
     hotels: '',
+    places: '', // Add places search state
     priceAirports: {}
   });
 
@@ -179,11 +186,12 @@ export const ManageDeals = () => {
 
   const fetchDestinations = async () => {
     try {
-      const response = await axios.get("/destinations/dropdown-destionation");
+      // Get destinations with their places
+      const response = await axios.get("/destinations/destinations");
       setDestinations(response.data);
     } catch (error) {
-      console.error("Error fetching destinatinos:", error);
-      setAlert({ message: "Error fetching destinatinos", type: "red" });
+      console.error("Error fetching destinations:", error);
+      setAlert({ message: "Error fetching destinations", type: "red" });
     }
   };
 
@@ -227,6 +235,48 @@ export const ManageDeals = () => {
     }
   };
 
+  // Function to fetch places for a specific destination
+  const fetchPlacesForDestination = async (destinationId) => {
+    if (!destinationId) return;
+    
+    console.log("Fetching places for destination:", destinationId);
+    
+    try {
+      // First check if we already have places for this destination in our cache
+      if (destinationPlaces[destinationId]) {
+        console.log("Using cached places:", destinationPlaces[destinationId]);
+        setAvailablePlaces(destinationPlaces[destinationId]);
+        return;
+      }
+      
+      // Otherwise fetch from the server
+      console.log("Making API call to fetch places");
+      const response = await axios.get(`/destinations/${destinationId}/places`);
+      console.log("Places API response:", response);
+      const places = response.data;
+      
+      // Log each place with its ID and name for debugging
+      console.log("Places data:", places);
+      places.forEach(place => {
+        console.log(`Place: ${place.name}, ID: ${place._id}`);
+      });
+      
+      // Update our cache
+      setDestinationPlaces(prev => ({
+        ...prev,
+        [destinationId]: places
+      }));
+      
+      // Update available places
+      setAvailablePlaces(places);
+    } catch (error) {
+      console.error(`Error fetching places for destination ${destinationId}:`, error);
+      console.log("Error response:", error.response);
+      setAlert({ message: "Error fetching places", type: "red" });
+      setAvailablePlaces([]);
+    }
+  };
+
   const handleOpenDialog = (deal = null) => {
     if (buttonDisabled) return;
     
@@ -250,8 +300,7 @@ export const ManageDeals = () => {
     setDeletedImages([]);
     setDeletedVideos([]);
     
-    setFormData(
-      deal
+    const newFormData = deal
         ? {
             _id: deal._id,
             title: deal.title,
@@ -259,6 +308,7 @@ export const ManageDeals = () => {
             availableCountries: deal.availableCountries || [],
             destination: deal.destination ? deal.destination._id : "" || "",
             destinations: deal && deal.destinations ? destinationIds : [],
+          selectedPlaces: deal.selectedPlaces || [], // Add selected places
             days: deal.days || 0,
             rooms: deal.rooms || 0,
             guests: deal.guests || 0,
@@ -276,62 +326,22 @@ export const ManageDeals = () => {
                   typeof cat === "object" ? cat._id : cat,
                 )
               : [],
-            itinerary:
-              deal.itinerary &&
-              Array.isArray(deal.itinerary) &&
-              deal.itinerary.length > 0
-                ? deal.itinerary.map((item) => ({
-                    title: item.title || "",
-                    description: item.description || "",
-                  }))
-                : [{ title: "", description: "" }],
-            whatsIncluded:
-              deal.whatsIncluded && typeof deal.whatsIncluded === "string"
-                ? deal.whatsIncluded.split(",")
-                : Array.isArray(deal.whatsIncluded)
-                ? deal.whatsIncluded
-                : [""],
-            exclusiveAdditions:
-              deal.exclusiveAdditions &&
-              typeof deal.exclusiveAdditions === "string"
-                ? deal.exclusiveAdditions.split(",")
-                : Array.isArray(deal.exclusiveAdditions)
-                ? deal.exclusiveAdditions
-                : [""],
-            termsAndConditions:
-              deal.termsAndConditions &&
-              typeof deal.termsAndConditions === "string"
-                ? deal.termsAndConditions.split(",")
-                : Array.isArray(deal.termsAndConditions)
-                ? deal.termsAndConditions
-                : [""],
-            images: deal.images || [],
+          itinerary: deal.itinerary || [{ title: "", description: "" }],
+          whatsIncluded: deal.whatsIncluded || [""],
+          exclusiveAdditions: deal.exclusiveAdditions || [""],
+          termsAndConditions: deal.termsAndConditions || [""],
             tag: deal.tag || "",
             LowDeposite: deal.LowDeposite || "",
+          images: deal.images || [],
             videos: deal.videos || [],
-            prices: deal.prices.length
-              ? deal.prices.map((p) => ({
-                  ...p,
-                  airport: Array.isArray(p.airport)
-                    ? p.airport.map((a) =>
-                          typeof a === "object" ? a._id : a,
-                        )
-                      : [],
-                  startdate: p.startdate.split("T")[0], // Convert to YYYY-MM-DD
-                  enddate: p.enddate.split("T")[0], // Convert to YYYY-MM-DD
-                    hotel:
-                    p.hotel && typeof p.hotel === "object"
-                      ? p.hotel._id
-                      : p.hotel,
-                  }))
-                : [
+          prices: deal.prices || [
                     {
                       country: "",
                       priceswitch: false,
                     airport: [],
                       hotel: "",
-                      startdate: "", // Ensure this is initialized as an empty string
-                      enddate: "", // Ensure this is initialized as an empty string
+              startdate: "",
+              enddate: "",
                       price: 0,
                       flightDetails: {
                         outbound: {
@@ -350,62 +360,42 @@ export const ManageDeals = () => {
                     },
                   ],
         }
-      : {
-          title: "",
-          description: "",
-          availableCountries: [],
-          destination: "",
-          destinations: [],
-          days: 0,
-          rooms: 0,
-          guests: 0,
-          distanceToCenter: "",
-          distanceToBeach: "",
-          isTopDeal: false,
-          isHotdeal: false,
-          isFeatured: false,
-          boardBasis: "",
-          hotels: [],
-          holidaycategories: [],
-          images: [],
-          itinerary: [{ title: "", description: "" }],
-          whatsIncluded: [""],
-          exclusiveAdditions: [""],
-          termsAndConditions: [""],
-          tag: "",
-          LowDeposite: "",
-          prices: [
-            {
-              country: "",
-              priceswitch: false,
-              airport: [],
-              hotel: "",
-              startdate: "", // Ensure this is initialized as an empty string
-              enddate: "", // Ensure this is initialized as an empty string
-              price: 0,
-              flightDetails: {
-                outbound: {
-                  departureTime: "",
-                  arrivalTime: "",
-                  airline: "",
-                  flightNumber: "",
-                },
-                returnFlight: {
-                  departureTime: "",
-                  arrivalTime: "",
-                  airline: "",
-                  flightNumber: "",
-                },
-              },
-            },
-          ],
-        },
-    );
-    setNewImages([]);
-    setNewVideos([]);
+      : { ...formData };
+    
+    setFormData(newFormData);
+    
+    // Update available places if a destination is selected
+    if (newFormData.destination) {
+      fetchPlacesForDestination(newFormData.destination);
+    }
+    
+    // Initialize destinationSelectedPlaces if editing an existing deal
+    if (deal && deal.destinations) {
+      const initialDestinationPlaces = {};
+      
+      // For each destination in multicenter, extract its places from selectedPlaces
+      deal.destinations.forEach(dest => {
+        const destId = typeof dest === 'object' ? dest._id : dest;
+        
+        // Find places that belong to this destination
+        const destPlaces = deal.selectedPlaces ? deal.selectedPlaces.filter(place => {
+          if (place.destinationId) {
+            const placeDestId = typeof place.destinationId === 'object'
+              ? place.destinationId._id.toString()
+              : place.destinationId.toString();
+            return placeDestId === destId.toString();
+          }
+          return false;
+        }) : [];
+        
+        console.log(`Found ${destPlaces.length} places for destination ${destId}:`, destPlaces);
+        initialDestinationPlaces[destId] = destPlaces;
+      });
+      
+      setDestinationSelectedPlaces(initialDestinationPlaces);
+    }
+    
     setOpenDialog(true);
-    setImageError("");
-    setVideoError("");
   };
 
   const handleCloseDialog = () => {
@@ -420,6 +410,22 @@ export const ManageDeals = () => {
   };
 
   const handleOpenViewDialog = (deal) => {
+    console.log("Opening view dialog with deal:", deal);
+    
+    // Log detailed information about selected places
+    console.log("Selected places:", deal.selectedPlaces);
+    if (deal.selectedPlaces && deal.selectedPlaces.length > 0) {
+      deal.selectedPlaces.forEach((place, idx) => {
+        console.log(`Place ${idx+1}:`, place);
+        if (place.placeId) {
+          console.log(`  placeId: ${typeof place.placeId === 'object' ? place.placeId._id : place.placeId}`);
+          if (typeof place.placeId === 'object' && place.placeId.name) {
+            console.log(`  name: ${place.placeId.name}`);
+          }
+        }
+      });
+    }
+    
     setCurrentDeal(deal);
     setOpenViewDialog(true);
   };
@@ -432,92 +438,78 @@ export const ManageDeals = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
-    
-    // Create a new FormData object
-    const formSubmission = new FormData();
-
-    // Deep copy and prepare data, excluding files that will be handled separately
-    const dataToSubmit = { ...formData };
-    delete dataToSubmit.images;
-    delete dataToSubmit.videos;
-
-    // Log the deleted images for debugging
-    console.log("Submitting deletedImages:", deletedImages);
-    console.log("Submitting deletedVideos:", deletedVideos);
-
-    // Append the JSON data, including arrays of deleted media
-    formSubmission.append("data", JSON.stringify({
-      ...dataToSubmit,
-      deletedImages,
-      deletedVideos,
-    }));
-
-    // Append new image files
-    newImages.forEach(file => {
-      formSubmission.append("images", file);
-    });
-
-    // Append new video files
-    newVideos.forEach(file => {
-      formSubmission.append("videos", file);
-    });
-
-    if (processingInterval) clearInterval(processingInterval);
     setIsSubmitting(true);
-    setLoading(true);
-    setUploadProgress(0);
-    setProgressStatus("Uploading...");
-
-    const config = {
-      headers: { "Content-Type": "multipart/form-data" },
-      onUploadProgress: (progressEvent) => {
-        const percentCompleted = Math.round(
-          (progressEvent.loaded * 100) / progressEvent.total
-        );
-        // Cap upload progress at 90% for the first stage
-        setUploadProgress(Math.min(percentCompleted, 90));
-
-        if (percentCompleted === 100) {
-          setProgressStatus("Processing... Please wait.");
-          // Start a slow increment for the processing phase
-          const interval = setInterval(() => {
-            setUploadProgress(prev => {
-              if (prev >= 99) {
-                clearInterval(interval);
-                return 99;
-              }
-              return prev + 1;
-            });
-          }, 800);
-          setProcessingInterval(interval);
-        }
-      },
-    };
 
     try {
-      if (currentDeal) {
-        await axios.put(`/deals/${currentDeal._id}`, formSubmission, config);
-        setAlert({ message: "Deal updated successfully", type: "green" });
-      } else {
-        await axios.post("/deals", formSubmission, config);
-        setAlert({ message: "Deal created successfully", type: "green" });
+      // Combine places from primary destination and multicenter destinations
+      let allSelectedPlaces = [];
+      
+      // Add primary destination places
+      allSelectedPlaces = [...formData.selectedPlaces];
+      
+      // Add multicenter destination places
+      Object.entries(destinationSelectedPlaces).forEach(([destId, places]) => {
+        if (places && places.length > 0) {
+          allSelectedPlaces = [...allSelectedPlaces, ...places];
+        }
+      });
+      
+      // Remove any duplicates by placeId
+      allSelectedPlaces = allSelectedPlaces.filter((place, index, self) => {
+        const placeId = place.placeId ? 
+          (typeof place.placeId === 'object' ? place.placeId._id : place.placeId) : 
+          place;
+        return index === self.findIndex(p => {
+          const pId = p.placeId ? 
+            (typeof p.placeId === 'object' ? p.placeId._id : p.placeId) : 
+            p;
+          return pId.toString() === placeId.toString();
+        });
+      });
+
+      // Create form data
+      const formDataToSend = new FormData();
+      
+      // Add all the form fields
+      const dataToSend = {
+        ...formData,
+        selectedPlaces: allSelectedPlaces // Use the combined places
+      };
+      
+      // Add images
+      if (newImages.length > 0) {
+        newImages.forEach((image) => {
+          formDataToSend.append("images", image);
+        });
       }
-      if (processingInterval) clearInterval(processingInterval);
-      setUploadProgress(100);
-      setTimeout(() => {
-      fetchDeals();
+      
+      // Add videos
+      if (newVideos.length > 0) {
+        newVideos.forEach((video) => {
+          formDataToSend.append("videos", video);
+        });
+      }
+      
+      // Add the rest of the data
+      formDataToSend.append("data", JSON.stringify(dataToSend));
+      
+      // Send the request
+      if (currentDeal) {
+        await axios.put(`/deals/${currentDeal._id}`, formDataToSend);
+        setAlert({ message: "Deal updated successfully!", type: "green" });
+      } else {
+        await axios.post("/deals", formDataToSend);
+        setAlert({ message: "Deal created successfully!", type: "green" });
+      }
+      
+      // Reset form and close dialog
       handleCloseDialog();
-      }, 500);
+      fetchDeals();
     } catch (error) {
-      console.error("Error saving deal:", error);
-      const errorMessage = error.response?.data?.message || "An error occurred while saving the deal.";
-      setAlert({ message: errorMessage, type: "red" });
+      console.error("Error submitting deal:", error);
+      setAlert({ message: "Error saving deal", type: "red" });
     } finally {
-      if (processingInterval) clearInterval(processingInterval);
       setIsSubmitting(false);
-      setLoading(false);
-      setUploadProgress(0);
-      setProgressStatus("");
     }
   };
 
@@ -741,6 +733,73 @@ export const ManageDeals = () => {
     return true;
   };
 
+  // Function to update available places when destination changes
+  const updateAvailablePlaces = (destinationId) => {
+    if (!destinationId) {
+      setAvailablePlaces([]);
+      return;
+    }
+    
+    const selectedDestination = destinations.find(d => d._id === destinationId);
+    if (selectedDestination && selectedDestination.places) {
+      setAvailablePlaces(selectedDestination.places);
+    } else {
+      setAvailablePlaces([]);
+    }
+  };
+
+  // Function to open places selection dialog for a specific destination
+  const openPlacesSelectionDialog = (destinationId) => {
+    console.log("Opening places selection dialog for destination:", destinationId);
+    setSelectedDestinationForPlaces(destinationId);
+    console.log("Set selectedDestinationForPlaces to:", destinationId);
+    
+    // Log which destination we're selecting places for
+    const destName = destinations.find(d => d._id === destinationId)?.name || "Unknown";
+    console.log(`Selecting places for destination: ${destName} (${destinationId})`);
+    
+    // Check if this is primary or multicenter destination
+    const isPrimary = destinationId === formData.destination;
+    console.log(`Is this the primary destination? ${isPrimary ? 'Yes' : 'No'}`);
+    
+    // Log existing places for this destination
+    if (isPrimary) {
+      console.log("Current primary destination places:", formData.selectedPlaces);
+      
+      // Filter places that belong to this destination
+      const primaryPlaces = formData.selectedPlaces.filter(place => {
+        if (!place.destinationId) return true; // Legacy format, assume primary
+        
+        const placeDestId = typeof place.destinationId === 'object'
+          ? place.destinationId._id.toString()
+          : place.destinationId.toString();
+          
+        return placeDestId === destinationId.toString();
+      });
+      
+      console.log(`Found ${primaryPlaces.length} places for primary destination:`, primaryPlaces);
+    } else {
+      // Ensure destinationSelectedPlaces has an entry for this destination
+      if (!destinationSelectedPlaces[destinationId]) {
+        setDestinationSelectedPlaces(prev => ({
+          ...prev,
+          [destinationId]: []
+        }));
+      }
+      
+      console.log("Current multicenter destination places:", destinationSelectedPlaces[destinationId] || []);
+    }
+    
+    fetchPlacesForDestination(destinationId);
+    setCustomDropdownOpen(prev => {
+      console.log("Setting places dropdown to open");
+      return {
+        ...prev,
+        places: true
+      };
+    });
+  };
+
   return (
     <div className="h-screen w-full overflow-hidden px-4 py-6">
       {alert.message && (
@@ -785,12 +844,59 @@ export const ManageDeals = () => {
                   >
                     <MapPinIcon className="mb-1 h-5 w-5" />
                     {deal.destination.name}
+                    {/* Show primary destination places */}
+                    {deal.selectedPlaces && deal.selectedPlaces.length > 0 && (
+                      <span className="text-sm font-normal ml-1">
+                        {(() => {
+                          // Filter places for primary destination
+                          const primaryPlaces = deal.selectedPlaces.filter(place => {
+                            if (!place.destinationId) return true; // Legacy format
+                            const primaryDestId = deal.destination?._id.toString();
+                            const placeDestId = typeof place.destinationId === 'object'
+                              ? place.destinationId._id.toString()
+                              : place.destinationId.toString();
+                            return placeDestId === primaryDestId;
+                          });
+                          
+                          if (primaryPlaces.length > 0) {
+                            return `(Places: ${primaryPlaces.map((place, idx) => {
+                              // Handle both old and new data structures
+                              if (typeof place === 'string') return place;
+                              if (place.placeId && typeof place.placeId === 'object' && place.placeId.name) return place.placeId.name;
+                              if (place.name) return place.name;
+                              if (place.placeId) {
+                                // Try to find the place name from the destination's places
+                                const placeObj = deal.destination?.places?.find(p => 
+                                  p._id.toString() === place.placeId.toString());
+                                return placeObj ? placeObj.name : `Place ${idx+1}`;
+                              }
+                              return `Place ${idx+1}`;
+                            }).join(', ')})`;
+                          }
+                          return '';
+                        })()}
+                      </span>
+                    )}
                     {deal.destinations && deal.destinations.length > 0 && (
                       <span className="text-sm font-normal">
-                        , {deal.destinations.map(dest => 
-                          typeof dest === 'object' ? dest.name : 
-                          destinations.find(d => d._id === dest)?.name || dest
-                        ).join(', ')}
+                        , {deal.destinations.map((dest, idx) => {
+                          const destId = typeof dest === 'object' ? dest._id : dest;
+                          const destName = typeof dest === 'object' ? dest.name : 
+                                         destinations.find(d => d._id === destId)?.name || destId;
+                          
+                          // Count places for this destination
+                          const destPlaces = deal.selectedPlaces ? deal.selectedPlaces.filter(place => {
+                            if (place.destinationId) {
+                              const placeDestId = typeof place.destinationId === 'object' 
+                                ? place.destinationId._id.toString() 
+                                : place.destinationId.toString();
+                              return placeDestId === destId.toString();
+                            }
+                            return false;
+                          }) : [];
+                          
+                          return `${destName}${destPlaces.length > 0 ? ` (${destPlaces.length} places)` : ''}${idx < deal.destinations.length - 1 ? ', ' : ''}`;
+                        })}
                       </span>
                     )}
                   </Typography>
@@ -1010,11 +1116,16 @@ export const ManageDeals = () => {
                   id => id.toString() !== value.toString()
                 );
                 
+                // Update form data
                 setFormData({ 
                   ...formData, 
                   destination: value,
-                  destinations: updatedDestinations
+                  destinations: updatedDestinations,
+                  selectedPlaces: [] // Reset selected places when destination changes
                 });
+                
+                // Update available places for the selected destination
+                fetchPlacesForDestination(value);
               }}
               required
             >
@@ -1024,6 +1135,506 @@ export const ManageDeals = () => {
                 </Option>
               ))}
             </Select>
+            
+            {/* Button to select places for primary destination */}
+            {formData.destination && (
+              <div className="mt-2">
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded"
+                  onClick={() => openPlacesSelectionDialog(formData.destination)}
+                >
+                  <span className="text-left">
+                    {formData.selectedPlaces.filter(place => {
+                      if (!place.destinationId) return false;
+                      const placeDestId = typeof place.destinationId === 'object' 
+                        ? place.destinationId._id.toString() 
+                        : place.destinationId.toString();
+                      return placeDestId === formData.destination.toString();
+                    }).length > 0
+                      ? `${formData.selectedPlaces.filter(place => {
+                          if (!place.destinationId) return false;
+                          const placeDestId = typeof place.destinationId === 'object' 
+                            ? place.destinationId._id.toString() 
+                            : place.destinationId.toString();
+                          return placeDestId === formData.destination.toString();
+                        }).length} place(s) selected`
+                      : "Select Places for Primary Destination"}
+                  </span>
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            {/* Places dropdown for the selected destination */}
+            {customDropdownOpen.places && selectedDestinationForPlaces && (
+              <div className="fixed inset-0 z-[200000] flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <Typography variant="h6" color="gray">
+                      Places in {destinations.find(d => d._id === selectedDestinationForPlaces)?.name || "Destination"}
+                      {(() => {
+                        // Count selected places for this destination
+                        let selectedCount = 0;
+                        
+                        if (selectedDestinationForPlaces === formData.destination) {
+                          // Count primary destination places
+                          selectedCount = formData.selectedPlaces.filter(place => {
+                            if (!place.destinationId) return true; // Legacy format
+                            const placeDestId = typeof place.destinationId === 'object'
+                              ? place.destinationId._id.toString()
+                              : place.destinationId.toString();
+                            return placeDestId === selectedDestinationForPlaces.toString();
+                          }).length;
+                        } else {
+                          // Count multicenter destination places
+                          selectedCount = (destinationSelectedPlaces[selectedDestinationForPlaces] || []).length;
+                        }
+                        
+                        if (selectedCount > 0) {
+                          return (
+                            <span className="ml-2 text-sm bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                              {selectedCount} selected
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </Typography>
+                    <div className="flex items-center">
+                      <button
+                        type="button"
+                        className="text-blue-500 hover:text-blue-700 mr-2"
+                        onClick={() => {
+                          // Test function to log the current state
+                          console.log("Current selected places state:");
+                          console.log("Primary destination places:", formData.selectedPlaces);
+                          console.log("Multicenter places:", destinationSelectedPlaces);
+                          console.log("Current destination being edited:", selectedDestinationForPlaces);
+                          
+                          // Test if places are selected for this destination
+                          if (availablePlaces.length > 0) {
+                            if (selectedDestinationForPlaces === formData.destination) {
+                              // Check primary destination places
+                              const primaryPlaces = formData.selectedPlaces.filter(place => {
+                                if (!place.destinationId) return true; // Legacy format
+                                
+                                const placeDestId = typeof place.destinationId === 'object'
+                                  ? place.destinationId._id.toString()
+                                  : place.destinationId.toString();
+                                  
+                                return placeDestId === selectedDestinationForPlaces.toString();
+                              });
+                              
+                              console.log(`Found ${primaryPlaces.length} places for primary destination:`, primaryPlaces);
+                              
+                              // Check each available place
+                              availablePlaces.forEach(place => {
+                                const isSelected = primaryPlaces.some(item => {
+                                  if (item && item.placeId) {
+                                    const placeIdStr = typeof item.placeId === 'object' ? 
+                                      item.placeId._id.toString() : item.placeId.toString();
+                                    return placeIdStr === place._id.toString();
+                                  }
+                                  return false;
+                                });
+                                
+                                console.log(`Place ${place.name} (${place._id}) selected: ${isSelected}`);
+                              });
+                            } else {
+                              // Check multicenter destination places
+                              const selectedPlaces = destinationSelectedPlaces[selectedDestinationForPlaces] || [];
+                              console.log(`Found ${selectedPlaces.length} places for multicenter destination:`, selectedPlaces);
+                              
+                              // Check each available place
+                              availablePlaces.forEach(place => {
+                                const isSelected = selectedPlaces.some(item => {
+                                  if (item && item.placeId) {
+                                    const placeIdStr = typeof item.placeId === 'object' ? 
+                                      item.placeId._id.toString() : item.placeId.toString();
+                                    return placeIdStr === place._id.toString();
+                                  }
+                                  return false;
+                                });
+                                
+                                console.log(`Place ${place.name} (${place._id}) selected: ${isSelected}`);
+                              });
+                            }
+                            
+                            // Force update the state to trigger a re-render
+                            if (selectedDestinationForPlaces === formData.destination) {
+                              setFormData({...formData});
+                            } else {
+                              setDestinationSelectedPlaces({...destinationSelectedPlaces});
+                            }
+                          }
+                        }}
+                      >
+                        <span className="text-xs">Test</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="text-blue-500 hover:text-blue-700 mr-2"
+                        onClick={() => {
+                          // Debug function to manually check and fix places
+                          console.log("Running debug function for places selection");
+                          
+                          if (availablePlaces.length > 0) {
+                            // Check if we have any places already selected
+                            if (selectedDestinationForPlaces === formData.destination) {
+                              // For primary destination
+                              const existingPlaces = formData.selectedPlaces.filter(place => {
+                                if (!place.destinationId) return true; // Legacy format
+                                
+                                const placeDestId = typeof place.destinationId === 'object'
+                                  ? place.destinationId._id.toString()
+                                  : place.destinationId.toString();
+                                  
+                                return placeDestId === selectedDestinationForPlaces.toString();
+                              });
+                              
+                              console.log(`Found ${existingPlaces.length} existing places for primary destination`);
+                              
+                              // If no places are selected, select the first one
+                              if (existingPlaces.length === 0) {
+                                const firstPlace = availablePlaces[0];
+                                console.log("Manually selecting first place for primary destination:", firstPlace);
+                                
+                                setFormData(prev => ({
+                                  ...prev,
+                                  selectedPlaces: [...prev.selectedPlaces, {
+                                    placeId: firstPlace._id,
+                                    destinationId: selectedDestinationForPlaces
+                                  }]
+                                }));
+                              }
+                            } else {
+                              // For multicenter destinations
+                              const existingPlaces = destinationSelectedPlaces[selectedDestinationForPlaces] || [];
+                              console.log(`Found ${existingPlaces.length} existing places for multicenter destination`);
+                              
+                              // If no places are selected, select the first one
+                              if (existingPlaces.length === 0) {
+                                const firstPlace = availablePlaces[0];
+                                console.log("Manually selecting first place for multicenter destination:", firstPlace);
+                                
+                                setDestinationSelectedPlaces(prev => ({
+                                  ...prev,
+                                  [selectedDestinationForPlaces]: [...(prev[selectedDestinationForPlaces] || []), {
+                                    placeId: firstPlace._id,
+                                    destinationId: selectedDestinationForPlaces
+                                  }]
+                                }));
+                              }
+                            }
+                          }
+                        }}
+                      >
+                        <span className="text-xs">Debug</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="text-gray-500 hover:text-gray-700"
+                        onClick={() => setCustomDropdownOpen(prev => ({ ...prev, places: false }))}
+                      >
+                        <XMarkIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Search input */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between">
+                      <input
+                        type="text"
+                        className="flex-1 p-2 border border-gray-300 rounded-md"
+                        placeholder="Search places..."
+                        value={dropdownSearch.places}
+                        onChange={(e) => handleSearchChange('places', e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="ml-2 bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 text-xs"
+                        onClick={() => {
+                          // Get all visible places after filtering
+                          const visiblePlaces = availablePlaces
+                            .filter(place => place.name.toLowerCase().includes(dropdownSearch.places.toLowerCase()));
+                          
+                          console.log(`Selecting all ${visiblePlaces.length} visible places`);
+                          
+                          if (selectedDestinationForPlaces === formData.destination) {
+                            // For primary destination
+                            // Combine existing selections with new ones, avoiding duplicates
+                            const existingIds = formData.selectedPlaces.map(item => {
+                              if (item && item.placeId) {
+                                return typeof item.placeId === 'object' ? 
+                                  item.placeId._id.toString() : item.placeId.toString();
+                              }
+                              return typeof item === 'object' ? item._id.toString() : item.toString();
+                            });
+                            
+                            const newPlaces = [
+                              ...formData.selectedPlaces,
+                              ...visiblePlaces
+                                .filter(place => !existingIds.includes(place._id.toString()))
+                                .map(place => ({
+                                  placeId: place._id,
+                                  destinationId: selectedDestinationForPlaces
+                                }))
+                            ];
+                            
+                            console.log("Updated primary places after Select All:", newPlaces);
+                            setFormData(prev => ({
+                              ...prev,
+                              selectedPlaces: newPlaces
+                            }));
+                          } else {
+                            // For multicenter destinations
+                            const currentPlaces = destinationSelectedPlaces[selectedDestinationForPlaces] || [];
+                            const existingIds = currentPlaces.map(item => {
+                              if (item && item.placeId) {
+                                return typeof item.placeId === 'object' ? 
+                                  item.placeId._id.toString() : item.placeId.toString();
+                              }
+                              return typeof item === 'object' ? item._id.toString() : item.toString();
+                            });
+                            
+                            const newPlaces = [
+                              ...currentPlaces,
+                              ...visiblePlaces
+                                .filter(place => !existingIds.includes(place._id.toString()))
+                                .map(place => ({
+                                  placeId: place._id,
+                                  destinationId: selectedDestinationForPlaces
+                                }))
+                            ];
+                            
+                            console.log("Updated multicenter places after Select All:", newPlaces);
+                            setDestinationSelectedPlaces(prev => ({
+                              ...prev,
+                              [selectedDestinationForPlaces]: newPlaces
+                            }));
+                          }
+                        }}
+                      >
+                        Select All ({availablePlaces.filter(place => place.name.toLowerCase().includes(dropdownSearch.places.toLowerCase())).length})
+                      </button>
+                      <button
+                        type="button"
+                        className="ml-2 bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-xs"
+                        onClick={() => {
+                          // Clear all selected places for this destination
+                          console.log("Clearing all places for destination:", selectedDestinationForPlaces);
+                          
+                          if (selectedDestinationForPlaces === formData.destination) {
+                            // For primary destination
+                            console.log("Clearing primary destination places");
+                            setFormData(prev => ({
+                              ...prev,
+                              selectedPlaces: []
+                            }));
+                          } else {
+                            // For multicenter destinations
+                            console.log("Clearing multicenter destination places");
+                            setDestinationSelectedPlaces(prev => ({
+                              ...prev,
+                              [selectedDestinationForPlaces]: []
+                            }));
+                          }
+                        }}
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Show selected places */}
+                  {((selectedDestinationForPlaces === formData.destination && formData.selectedPlaces.length > 0) ||
+                    (selectedDestinationForPlaces !== formData.destination && 
+                     (destinationSelectedPlaces[selectedDestinationForPlaces]?.length > 0))) && (
+                    <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+                      <div className="font-semibold">Selected Places:</div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {selectedDestinationForPlaces === formData.destination 
+                          ? formData.selectedPlaces
+                              .filter(placeItem => {
+                                // Only show places for primary destination
+                                if (!placeItem.destinationId) return true;
+                                const placeDestId = typeof placeItem.destinationId === 'object'
+                                  ? placeItem.destinationId._id.toString()
+                                  : placeItem.destinationId.toString();
+                                return placeDestId === selectedDestinationForPlaces.toString();
+                              })
+                              .map((placeItem, idx) => {
+                                const placeId = placeItem.placeId || placeItem;
+                                const placeIdStr = typeof placeId === 'object' ? placeId._id : placeId;
+                                
+                                const place = availablePlaces.find(p => p._id.toString() === placeIdStr.toString());
+                                const placeName = place ? place.name : 
+                                  (typeof placeItem === 'object' && placeItem.name) ? placeItem.name :
+                                  `Place ${idx+1}`;
+                                
+                                return (
+                                  <span key={`primary-${idx}`} className="bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                                    {placeName}
+                                  </span>
+                                );
+                              })
+                          : (destinationSelectedPlaces[selectedDestinationForPlaces] || [])
+                              .map((placeItem, idx) => {
+                                const placeId = placeItem.placeId || placeItem;
+                                const placeIdStr = typeof placeId === 'object' ? placeId._id : placeId;
+                                
+                                const place = availablePlaces.find(p => p._id.toString() === placeIdStr.toString());
+                                const placeName = place ? place.name : 
+                                  (typeof placeItem === 'object' && placeItem.name) ? placeItem.name :
+                                  `Place ${idx+1}`;
+                                
+                                return (
+                                  <span key={`multicenter-${idx}`} className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                                    {placeName}
+                                  </span>
+                                );
+                              })
+                        }
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Places list */}
+                  <div className="overflow-y-auto max-h-80">
+                    {availablePlaces.length > 0 ? (
+                      availablePlaces
+                        .filter(place => place.name.toLowerCase().includes(dropdownSearch.places.toLowerCase()))
+                        .map((place) => {
+                          let isSelected = false;
+                          
+                          if (selectedDestinationForPlaces === formData.destination) {
+                            // For primary destination
+                            isSelected = formData.selectedPlaces.some(item => {
+                              if (!item.destinationId) return false; // Skip if no destinationId
+                              if (item && item.placeId) {
+                                const placeIdStr = typeof item.placeId === 'object' ? 
+                                  item.placeId._id.toString() : item.placeId.toString();
+                                const placeDestId = typeof item.destinationId === 'object' ?
+                                  item.destinationId._id.toString() : item.destinationId.toString();
+                                return placeIdStr === place._id.toString() && 
+                                       placeDestId === selectedDestinationForPlaces.toString();
+                              }
+                              return false;
+                            });
+                          } else {
+                            // For multicenter destinations
+                            const selectedPlaces = destinationSelectedPlaces[selectedDestinationForPlaces] || [];
+                            isSelected = selectedPlaces.some(item => {
+                              if (item && item.placeId) {
+                                const placeIdStr = typeof item.placeId === 'object' ? 
+                                  item.placeId._id.toString() : item.placeId.toString();
+                                const placeDestId = typeof item.destinationId === 'object' ?
+                                  item.destinationId._id.toString() : item.destinationId.toString();
+                                return placeIdStr === place._id.toString() && 
+                                       placeDestId === selectedDestinationForPlaces.toString();
+                              }
+                              return false;
+                            });
+                          }
+
+                          return (
+                            <div key={`place-${place._id}`} className="flex items-center p-2 hover:bg-gray-50">
+                              <input
+                                type="checkbox"
+                                id={`place-${place._id}`}
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  const isChecked = e.target.checked;
+                                  console.log(`Checkbox for ${place.name} changed to: ${isChecked}`);
+                                  
+                                  if (selectedDestinationForPlaces === formData.destination) {
+                                    // For primary destination, update formData.selectedPlaces
+                                    if (isChecked) {
+                                      // Add the place with proper format
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        selectedPlaces: [...prev.selectedPlaces, {
+                                          placeId: place._id,
+                                          destinationId: selectedDestinationForPlaces
+                                        }]
+                                      }));
+                                    } else {
+                                      // Remove the place
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        selectedPlaces: prev.selectedPlaces.filter(item => {
+                                          if (item && item.placeId) {
+                                            const placeIdStr = typeof item.placeId === 'object' ? 
+                                              item.placeId._id.toString() : item.placeId.toString();
+                                            return placeIdStr !== place._id.toString();
+                                          }
+                                          return true;
+                                        })
+                                      }));
+                                    }
+                                  } else {
+                                    // For multicenter destinations
+                                    const currentPlaces = destinationSelectedPlaces[selectedDestinationForPlaces] || [];
+                                    
+                                    if (isChecked) {
+                                      // Add the place with proper format
+                                      setDestinationSelectedPlaces(prev => ({
+                                        ...prev,
+                                        [selectedDestinationForPlaces]: [...currentPlaces, {
+                                          placeId: place._id,
+                                          destinationId: selectedDestinationForPlaces
+                                        }]
+                                      }));
+                                    } else {
+                                      // Remove the place
+                                      setDestinationSelectedPlaces(prev => ({
+                                        ...prev,
+                                        [selectedDestinationForPlaces]: currentPlaces.filter(item => {
+                                          if (item && item.placeId) {
+                                            const placeIdStr = typeof item.placeId === 'object' ? 
+                                              item.placeId._id.toString() : item.placeId.toString();
+                                            return placeIdStr !== place._id.toString();
+                                          }
+                                          return true;
+                                        })
+                                      }));
+                                    }
+                                  }
+                                }}
+                                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                              />
+                              <label 
+                                htmlFor={`place-${place._id}`}
+                                className="ml-2 text-sm text-gray-700 cursor-pointer flex-1"
+                              >
+                                {place.name}
+                              </label>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        No places found for this destination
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                      onClick={() => setCustomDropdownOpen(prev => ({ ...prev, places: false }))}
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             
             {/* Multiple destinations support */}
             <div className="relative">
@@ -1102,6 +1713,27 @@ export const ManageDeals = () => {
                             >
                               {destination.name}
                             </label>
+                            
+                            {/* Button to select places for this destination */}
+                            {formData.destinations.some(id => 
+                              id === destination._id || id.toString() === destination._id.toString()
+                            ) && (
+                              <button
+                                type="button"
+                                className="ml-2 px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent checkbox toggle
+                                  openPlacesSelectionDialog(destination._id);
+                                }}
+                              >
+                                Places
+                                {destinationSelectedPlaces[destination._id]?.length > 0 && (
+                                  <span className="ml-1 bg-white text-green-500 rounded-full px-1">
+                                    {destinationSelectedPlaces[destination._id].length}
+                                  </span>
+                                )}
+                              </button>
+                            )}
                           </div>
                         ))}
                     </div>
@@ -2401,61 +3033,111 @@ export const ManageDeals = () => {
                     {currentDeal.destination
                       ? currentDeal.destination.name
                       : "N/A"}
-                  </Typography>
-                  
-                  {/* Display Multiple Destinations */}
-                  {currentDeal.destinations && currentDeal.destinations.length > 0 && (
-                    <Typography variant="paragraph" className="text-black">
-                      <span className="font-bold text-deep-orange-500">
-                        Multicenter:
-                      </span>{" "}
-                      {currentDeal.destinations.map(dest => 
-                        typeof dest === 'object' ? dest.name : 
-                        destinations.find(d => d._id === dest)?.name || dest
-                      ).join(', ')}
+                    
+                    {/* Simple inline display for places */}
+                    {/* {currentDeal.selectedPlaces && currentDeal.selectedPlaces.length > 0 && (
+                      <span className="ml-2">
+                        (Places: {currentDeal.selectedPlaces.map(place => {
+                          if (typeof place === 'string') return place;
+                          if (place.placeId && place.placeId.name) return place.placeId.name;
+                          if (place.name) return place.name;
+                          return "Place";
+                        }).join(', ')})
+                      </span>
+                    )} */}
                     </Typography>
+                  
+                  {/* Places section */}
+                                    {currentDeal.selectedPlaces && currentDeal.selectedPlaces.length > 0 && (
+                    <>
+                      {/* Primary destination places */}
+                      <Typography variant="paragraph" className="text-black ml-4 mt-1 border-l-2 border-green-500 pl-2">
+                        <span className="font-bold text-green-600">
+                          Places in {currentDeal.destination?.name || "Primary Destination"}:
+                        </span>{" "}
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {currentDeal.selectedPlaces
+                            .filter(place => {
+                              // Only show places that belong to the primary destination
+                              if (!place.destinationId) return true; // Legacy format, assume primary
+                              
+                              const primaryDestId = currentDeal.destination?._id.toString();
+                              const placeDestId = typeof place.destinationId === 'object'
+                                ? place.destinationId._id.toString()
+                                : place.destinationId.toString();
+                                
+                              return placeDestId === primaryDestId;
+                            })
+                            .map((place, idx) => {
+                              // Find the actual place object from availablePlaces
+                              const placeId = place.placeId || place;
+                              const placeIdStr = typeof placeId === 'object' ? placeId._id : placeId;
+                              const placeObj = availablePlaces.find(p => p._id.toString() === placeIdStr.toString());
+                              
+                              // Use the exact name from availablePlaces if found
+                              const placeName = placeObj ? placeObj.name : 
+                                (place.placeId?.name || 
+                                (typeof place.placeId === 'object' ? place.placeId.name : 
+                                (typeof place === 'object' && place.name ? place.name : `Place test ${idx+1}`)));
+                              
+                              return (
+                                <span key={`primary-${idx}`} className="bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                                  {placeName}
+                                </span>
+                              );
+                            })}
+                        </div>
+                      </Typography>
+
+                      {/* Multicenter destination places */}
+                      {currentDeal.destinations && currentDeal.destinations.length > 0 && (
+                        currentDeal.destinations.map(dest => {
+                          const destId = typeof dest === 'object' ? dest._id : dest;
+                          const destName = typeof dest === 'object' ? dest.name : 
+                            destinations.find(d => d._id === destId)?.name || dest;
+                          
+                          // Filter places for this destination
+                          const destPlaces = currentDeal.selectedPlaces.filter(place => {
+                            if (!place.destinationId) return false;
+                            const placeDestId = typeof place.destinationId === 'object'
+                              ? place.destinationId._id.toString()
+                              : place.destinationId.toString();
+                            return placeDestId === destId.toString();
+                          });
+                          
+                          if (destPlaces.length === 0) return null;
+                          
+                          return (
+                            <Typography key={destId} variant="paragraph" className="text-black ml-4 mt-2 border-l-2 border-blue-500 pl-2">
+                              <span className="font-bold text-blue-600">
+                                Places in {destName}:
+                              </span>{" "}
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {destPlaces.map((place, idx) => {
+                                  // Find the actual place object from availablePlaces
+                                  const placeId = place.placeId || place;
+                                  const placeIdStr = typeof placeId === 'object' ? placeId._id : placeId;
+                                  const placeObj = availablePlaces.find(p => p._id.toString() === placeIdStr.toString());
+                                  
+                                  // Use the exact name from availablePlaces if found
+                                  const placeName = placeObj ? placeObj.name : 
+                                    (place.placeId?.name || 
+                                    (typeof place.placeId === 'object' ? place.placeId.name : 
+                                    (typeof place === 'object' && place.name ? place.name : `Place test ${idx+1}`)));
+                                  
+                                  return (
+                                    <span key={`${destId}-${idx}`} className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                                      {placeName}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </Typography>
+                          );
+                        })
+                      )}
+                    </>
                   )}
-                  
-                  <Typography variant="paragraph" className="text-black">
-                    <span className="font-bold text-deep-orange-500">
-                      Board Basis:
-                    </span>{" "}
-                    {currentDeal.boardBasis.name || "N/A"}
-                  </Typography>
-                  <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
-                    <Typography variant="paragraph" className="text-black">
-                      <span className="font-bold text-deep-orange-500">
-                        Distance to Center:
-                      </span>{" "}
-                      {currentDeal.distanceToCenter || "N/A"}
-                    </Typography>
-                    <Typography variant="paragraph" className="text-black">
-                      <span className="font-bold text-deep-orange-500">
-                        Distance to Beach:
-                      </span>{" "}
-                      {currentDeal.distanceToBeach || "N/A"}
-                    </Typography>
-                  </div>
-                  <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
-                    <Typography variant="paragraph" className="text-black">
-                      <span className="font-bold text-deep-orange-500">
-                        Nights:
-                      </span>{" "}
-                      {currentDeal.days || "N/A"}
-                    </Typography>
-                    <Typography variant="paragraph" className="text-black">
-                      <span className="font-bold text-deep-orange-500">
-                        Rooms:
-                      </span>{" "}
-                      {currentDeal.rooms || "N/A"}
-                    </Typography>
-                    <Typography variant="paragraph" className="text-black">
-                      <span className="font-bold text-deep-orange-500">
-                        Guests:
-                      </span>{" "}
-                      {currentDeal.guests || "N/A"}
-                    </Typography>
-                  </div>
                 </CardBody>
               </Card>
 

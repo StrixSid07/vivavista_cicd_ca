@@ -67,6 +67,7 @@ const createDeal = async (req, res) => {
       availableCountries,
       destination,
       destinations = [],
+      selectedPlaces = [],
       prices,
       hotels,
       holidaycategories,
@@ -179,6 +180,7 @@ const createDeal = async (req, res) => {
       availableCountries,
       destination,
       destinations,
+      selectedPlaces,
       holidaycategories,
       hotels,
       boardBasis,
@@ -493,6 +495,14 @@ const getDealById = async (req, res) => {
       .populate("destination")
       .populate({
         path: "destinations",
+        select: "name",
+      })
+      .populate({
+        path: "selectedPlaces.placeId",
+        select: "name",
+      })
+      .populate({
+        path: "selectedPlaces.destinationId",
         select: "name",
       })
       .populate({

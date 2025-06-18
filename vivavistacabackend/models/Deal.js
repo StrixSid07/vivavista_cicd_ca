@@ -36,6 +36,16 @@ const DealSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Destination",
     }],
+    selectedPlaces: [{
+      placeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Place"
+      },
+      destinationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Destination"
+      }
+    }],
     holidaycategories: [
       {
         type: mongoose.Schema.Types.ObjectId,

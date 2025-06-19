@@ -300,6 +300,59 @@ export const ManageDeals = () => {
     setDeletedImages([]);
     setDeletedVideos([]);
     
+    const initialFormData = {
+      title: "",
+      description: "",
+      availableCountries: [],
+      destination: "",
+      destinations: [],
+      selectedPlaces: [], // Array to store selected place IDs
+      days: 0,
+      rooms: 0,
+      guests: 0,
+      distanceToCenter: "",
+      distanceToBeach: "",
+      isTopDeal: false,
+      isHotdeal: false,
+      isFeatured: false,
+      boardBasis: "",
+      hotels: [],
+      holidaycategories: [],
+      itinerary: [{ title: "", description: "" }],
+      whatsIncluded: [""],
+      exclusiveAdditions: [""],
+      termsAndConditions: [""],
+      tag: "",
+      LowDeposite: "",
+      images: [],
+      videos: [],
+      prices: [
+        {
+          country: "",
+          priceswitch: false,
+          airport: [],
+          hotel: "",
+          startdate: "",
+          enddate: "",
+          price: 0,
+          flightDetails: {
+            outbound: {
+              departureTime: "",
+              arrivalTime: "",
+              airline: "",
+              flightNumber: "",
+            },
+            returnFlight: {
+              departureTime: "",
+              arrivalTime: "",
+              airline: "",
+              flightNumber: "",
+            },
+          },
+        },
+      ],
+    };
+    
     const newFormData = deal
         ? {
             _id: deal._id,
@@ -308,7 +361,7 @@ export const ManageDeals = () => {
             availableCountries: deal.availableCountries || [],
             destination: deal.destination ? deal.destination._id : "" || "",
             destinations: deal && deal.destinations ? destinationIds : [],
-          selectedPlaces: deal.selectedPlaces || [], // Add selected places
+            selectedPlaces: deal.selectedPlaces || [], // Add selected places
             days: deal.days || 0,
             rooms: deal.rooms || 0,
             guests: deal.guests || 0,
@@ -326,41 +379,41 @@ export const ManageDeals = () => {
                   typeof cat === "object" ? cat._id : cat,
                 )
               : [],
-          itinerary: deal.itinerary || [{ title: "", description: "" }],
-          whatsIncluded: deal.whatsIncluded || [""],
-          exclusiveAdditions: deal.exclusiveAdditions || [""],
-          termsAndConditions: deal.termsAndConditions || [""],
+            itinerary: deal.itinerary || [{ title: "", description: "" }],
+            whatsIncluded: deal.whatsIncluded || [""],
+            exclusiveAdditions: deal.exclusiveAdditions || [""],
+            termsAndConditions: deal.termsAndConditions || [""],
             tag: deal.tag || "",
             LowDeposite: deal.LowDeposite || "",
-          images: deal.images || [],
+            images: deal.images || [],
             videos: deal.videos || [],
-          prices: deal.prices || [
-                    {
-                      country: "",
-                      priceswitch: false,
-                    airport: [],
-                      hotel: "",
-              startdate: "",
-              enddate: "",
-                      price: 0,
-                      flightDetails: {
-                        outbound: {
-                          departureTime: "",
-                          arrivalTime: "",
-                          airline: "",
-                          flightNumber: "",
-                        },
-                        returnFlight: {
-                          departureTime: "",
-                          arrivalTime: "",
-                          airline: "",
-                          flightNumber: "",
-                        },
-                      },
-                    },
-                  ],
+            prices: deal.prices || [
+              {
+                country: "",
+                priceswitch: false,
+                airport: [],
+                hotel: "",
+                startdate: "",
+                enddate: "",
+                price: 0,
+                flightDetails: {
+                  outbound: {
+                    departureTime: "",
+                    arrivalTime: "",
+                    airline: "",
+                    flightNumber: "",
+                  },
+                  returnFlight: {
+                    departureTime: "",
+                    arrivalTime: "",
+                    airline: "",
+                    flightNumber: "",
+                  },
+                },
+              },
+            ],
         }
-      : { ...formData };
+        : initialFormData; // Use the initial empty form data instead of previous state
     
     setFormData(newFormData);
     
@@ -393,6 +446,9 @@ export const ManageDeals = () => {
       });
       
       setDestinationSelectedPlaces(initialDestinationPlaces);
+    } else {
+      // Reset destinationSelectedPlaces when adding a new deal
+      setDestinationSelectedPlaces({});
     }
     
     setOpenDialog(true);

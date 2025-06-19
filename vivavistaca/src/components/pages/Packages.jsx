@@ -20,32 +20,7 @@ import {
 } from "@material-tailwind/react";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Base_Url } from "../../utils/Api";
-import { createDealSlug } from "../../utils/slugify";
 import { packages } from "../../assets";
-
-// Helper function to format destination text with multicenter support
-const formatDestinationText = (primaryDestination, additionalDestinations) => {
-  if (!additionalDestinations || !additionalDestinations.length) return primaryDestination;
-  
-  // Get the name of the primary destination
-  let result = primaryDestination;
-  
-  // Add the multicenter destinations with comma separator
-  const multiDestinations = additionalDestinations.map(dest => dest.name).join(", ");
-  
-  if (multiDestinations) {
-    // Combine with comma
-    const combined = `${result}, ${multiDestinations}`;
-    
-    // If the combined string is too long, truncate it
-    if (combined.length > 40) {
-      return `${result}, ${multiDestinations.substring(0, 25)}...`;
-    }
-    return combined;
-  }
-  
-  return result;
-};
 
 const Packages = () => {
   const [deals, setDeals] = useState([]);
@@ -110,7 +85,7 @@ const Packages = () => {
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-gray-600/40"></div>
         <div className="hero-content text-center relative z-10">
-          <h1 className="text-5xl font-bold text-white">Travel Bundle</h1>
+          <h1 className="text-5xl font-bold text-white">Packages</h1>
         </div>
       </section>
       <div className="min-h-screen p-6 bg-gradient-to-t from-blue-900 via-blue-700 to-green-500 animate-gradient-x">
@@ -138,7 +113,7 @@ const Packages = () => {
                           src={deal.images[imageIndex[deal._id]]}
                           alt={deal.title}
                           className="w-full h-full object-cover transition-transform duration-500 ease-in group-hover:scale-105 cursor-pointer"
-                          onClick={() => navigate(`/deals/${createDealSlug(deal.title) || deal._id}`)}
+                          onClick={() => navigate(`/deals/${deal._id}`)}
                         />
                         {/* Badge */}
                         {deal.tag && (
@@ -146,14 +121,6 @@ const Packages = () => {
                             <Tag size={14} /> {deal.tag}
                           </div>
                         )}
-                        
-                        {/* Multicenter badge */}
-                        {deal.destinations && deal.destinations.length > 0 && (
-                          <div className="absolute top-3 right-3 bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-                            Multicenter
-                          </div>
-                        )}
-                        
                         {deal.images.length > 1 && (
                           <>
                             <button
@@ -186,11 +153,11 @@ const Packages = () => {
                           {deal.description}
                         </p>
                       </div>
-                      <div className="flex flex-col gap-2 mt-4 mb-4">
+                      <div className="flex justify-between items-start mt-4 mb-4">
                         <div className="flex items-center gap-2 text-sm text-gray-700">
                           <MapPin className="w-4 h-4 text-indigo-500" />
                           <span className="font-medium">
-                            {formatDestinationText(deal.destination?.name, deal.destinations)}
+                            {deal.destination?.name}
                           </span>
                         </div>
 
@@ -199,14 +166,16 @@ const Packages = () => {
                           <span>{deal.days} Nights</span>
                         </div>
 
-                        {deal.boardBasis?.name && (
-                          <div className="flex items-center gap-2 text-sm text-gray-700">
-                            <FaCircle className="w-1 h-1 text-gray-400" />
-                            <span className="font-medium">
-                              {deal.boardBasis?.name}
-                            </span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          {deal.boardBasis?.name && (
+                            <>
+                              <FaCircle className="w-1 h-1 text-gray-400" />
+                              <span className="font-medium">
+                                {deal.boardBasis?.name}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                       <p className="text-deep-orange-600 font-bold mt-2">
                         Starting from: ${deal.prices[0]?.price || "N/A"}
@@ -255,7 +224,7 @@ const Packages = () => {
                         )}
                       </div>
                       <button
-                        onClick={() => navigate(`/deals/${createDealSlug(deal.title) || deal._id}`)}
+                        onClick={() => navigate(`/deals/${deal._id}`)}
                         className="bg-deep-orange-600 text-white px-4 py-2 rounded-lg hover:bg-deep-orange-700 transition"
                       >
                         Book Now

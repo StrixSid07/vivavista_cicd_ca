@@ -25,7 +25,6 @@ import {
 } from "@material-tailwind/react";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { topdeals } from "../../assets"; // Reuse the same background image
-import { createDealSlug } from "../../utils/slugify";
 
 // Helper function to format destination text with multicenter support
 const formatDestinationText = (primaryDestination, additionalDestinations) => {
@@ -209,7 +208,7 @@ const MulticenterPage = () => {
                           src={deal.images[imageIndex[deal._id]]}
                           alt={deal.title}
                           className="w-full h-full object-cover transition-transform duration-500 ease-in group-hover:scale-105 cursor-pointer"
-                          onClick={() => navigate(`/deals/${createDealSlug(deal.title) || deal._id}`)}
+                          onClick={() => navigate(`/deals/${deal._id}`)}
                         />
                         
                         {/* Badge */}
@@ -326,7 +325,7 @@ const MulticenterPage = () => {
                         )}
                       </div>
                       <button
-                        onClick={() => navigate(`/deals/${createDealSlug(deal.title) || deal._id}`)}
+                        onClick={() => navigate(`/deals/${deal._id}`)}
                         className="bg-[#1abc9c] hover:bg-teal-600 text-white py-2 px-4 rounded-lg transition-colors duration-300"
                       >
                         View Deal

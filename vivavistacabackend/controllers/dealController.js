@@ -440,6 +440,25 @@ const getAllDeals = async (req, res) => {
       } else {
         deal.prices.sort((a, b) => a.price - b.price);
       }
+      
+      // Expand prices by each airport if it's an array
+      const expandedPrices = [];
+      if (deal.prices && deal.prices.length > 0) {
+        deal.prices.forEach(priceObj => {
+          if (Array.isArray(priceObj.airport)) {
+            for (const airport of priceObj.airport) {
+              expandedPrices.push({
+                ...priceObj,
+                airport: airport
+              });
+            }
+          } else {
+            expandedPrices.push(priceObj);
+          }
+        });
+        deal.prices = expandedPrices;
+      }
+      
       return deal;
     });
 

@@ -94,7 +94,7 @@ export function ManageBlog() {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`/blogs/image/${currentblog._id}`);
+      await axios.delete(`/home/image/${currentblog._id}`);
       setFormData({
         ...formData,
         imagePreview: "",

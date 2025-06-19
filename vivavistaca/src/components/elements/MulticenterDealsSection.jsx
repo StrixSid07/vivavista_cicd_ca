@@ -12,7 +12,6 @@ import {
   MdOutlineArrowBackIos,
   MdOutlineArrowForwardIos,
 } from "react-icons/md";
-import { createDealSlug } from "../../utils/slugify";
 
 
 // Function to format destination text for display
@@ -66,7 +65,7 @@ const MulticenterCard = ({ deal, index, currentImage, nextImage, prevImage }) =>
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.4 }}
             className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110 cursor-pointer"
-            onClick={() => navigate(`/deals/${createDealSlug(deal.title) || deal._id}`)}
+            onClick={() => navigate(`/deals/${deal._id}`)}
           />
         </div>
         

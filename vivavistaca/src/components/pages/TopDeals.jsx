@@ -20,7 +20,6 @@ import {
 } from "@material-tailwind/react";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Base_Url } from "../../utils/Api";
-import { createDealSlug } from "../../utils/slugify";
 import { topdeals } from "../../assets";
 
 // Helper function to format destination text with multicenter support
@@ -138,7 +137,7 @@ const TopDeals = () => {
                           src={deal.images[imageIndex[deal._id]]}
                           alt={deal.title}
                           className="w-full h-full object-cover transition-transform duration-500 ease-in group-hover:scale-105 cursor-pointer"
-                          onClick={() => navigate(`/deals/${createDealSlug(deal.title) || deal._id}`)}
+                          onClick={() => navigate(`/deals/${deal._id}`)}
                         />
                         {/* Badge */}
                         {deal.tag && (
@@ -249,7 +248,7 @@ const TopDeals = () => {
                         )}
                       </div>
                       <button
-                        onClick={() => navigate(`/deals/${createDealSlug(deal.title) || deal._id}`)}
+                        onClick={() => navigate(`/deals/${deal._id}`)}
                         className="bg-deep-orange-600 text-white px-4 py-2 rounded-lg hover:bg-deep-orange-700 transition"
                       >
                         Book Now

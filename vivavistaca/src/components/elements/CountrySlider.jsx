@@ -5,6 +5,7 @@ import { IoIosArrowDropleft, IoIosArrowDropright } from "react-icons/io";
 import { FaStar, FaStarHalfAlt, FaRegStar, FaCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { CalendarDays, MapPin, Tag } from "lucide-react";
+import { createDealSlug } from "../../utils/slugify";
 
 // Helper function to format destination text with multicenter support
 const formatDestinationText = (primaryDestination, additionalDestinations) => {
@@ -32,8 +33,8 @@ const formatDestinationText = (primaryDestination, additionalDestinations) => {
 
 const TravelPackages = ({ destinations }) => {
   const navigate = useNavigate();
-  const handleViewDeals = (id) => {
-    navigate(`/deals/${id}`); // ✅ Navigate to deal details page
+  const handleViewDeals = (deal) => {
+    navigate(`/deals/${createDealSlug(deal.title) || deal._id}`); // Use slugified title or fall back to ID
   };
 
   const [scrollPositions, setScrollPositions] = useState(
@@ -180,7 +181,7 @@ const TravelPackages = ({ destinations }) => {
                         src={deal.images[0]}
                         className="h-52 w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         alt={destination.name}
-                        onClick={() => handleViewDeals(deal._id)}
+                        onClick={() => handleViewDeals(deal)}
                         style={{ cursor: 'pointer' }}
                       />
                       {/* Badge */}
@@ -276,7 +277,7 @@ const TravelPackages = ({ destinations }) => {
 
                         {/* Button */}
                         <Button
-                          onClick={() => handleViewDeals(deal._id)}
+                          onClick={() => handleViewDeals(deal)}
                           className="w-full mt-2 bg-deep-orange-500 hover:bg-deep-orange-700 text-white font-medium text-lg rounded-md py-2 normal-case customfontstitle"
                         >
                           Discover More

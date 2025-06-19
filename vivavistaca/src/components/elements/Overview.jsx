@@ -15,8 +15,84 @@ import {
   PlusCircle,
   ShieldCheck,
   Hotel,
+  MapPin,
 } from "lucide-react";
 import { AccommodationSlider } from "./AccommodationSlider";
+
+// Helper function to format destination text with places
+const formatDestinationText = (primaryDestination, additionalDestinations, selectedPlaces) => {
+  if (!primaryDestination && (!additionalDestinations || !additionalDestinations.length)) {
+    return "Unknown Location";
+  }
+  
+  // Create a map of all places from all destinations for easy lookup
+  const allPlacesMap = {};
+  
+  // Add places from primary destination
+  if (primaryDestination && primaryDestination.places && primaryDestination.places.length > 0) {
+    primaryDestination.places.forEach(place => {
+      allPlacesMap[place._id] = place.name;
+    });
+  }
+  
+  // Add places from additional destinations
+  if (additionalDestinations && additionalDestinations.length > 0) {
+    additionalDestinations.forEach(dest => {
+      if (dest.places && dest.places.length > 0) {
+        dest.places.forEach(place => {
+          allPlacesMap[place._id] = place.name;
+        });
+      }
+    });
+  }
+  
+  // Create a map to associate selected places with destinations
+  const selectedPlacesMap = {};
+  
+  // If selectedPlaces exists, organize them by destination
+  if (selectedPlaces && selectedPlaces.length > 0) {
+    selectedPlaces.forEach(place => {
+      const destId = place.destinationId?._id || place.destinationId;
+      if (!selectedPlacesMap[destId]) {
+        selectedPlacesMap[destId] = [];
+      }
+      // Use the place name from allPlacesMap if available, otherwise use the ID
+      const placeId = place.placeId?._id || place.placeId;
+      const placeName = allPlacesMap[placeId] || place.placeId?.name || "Place";
+      selectedPlacesMap[destId].push(placeName);
+    });
+  }
+  
+  // Format primary destination with its places
+  let result = "";
+  if (primaryDestination) {
+    result = primaryDestination.name || primaryDestination;
+    const primaryDestId = primaryDestination._id;
+    if (selectedPlacesMap[primaryDestId] && selectedPlacesMap[primaryDestId].length > 0) {
+      result += ` (${selectedPlacesMap[primaryDestId].join(", ")})`;
+    }
+  }
+  
+  // Add additional destinations with their places
+  if (additionalDestinations && additionalDestinations.length > 0) {
+    const formattedDestinations = additionalDestinations.map(dest => {
+      const destId = dest._id;
+      const destName = dest.name;
+      if (selectedPlacesMap[destId] && selectedPlacesMap[destId].length > 0) {
+        return `${destName} (${selectedPlacesMap[destId].join(", ")})`;
+      }
+      return destName;
+    });
+    
+    if (result) {
+      result += `, ${formattedDestinations.join(", ")}`;
+    } else {
+      result = formattedDestinations.join(", ");
+    }
+  }
+  
+  return result;
+};
 
 // Reusable Section Component with View More toggle
 const Section = ({ title, items, icon }) => {
@@ -68,6 +144,7 @@ const Overview = ({
   exclusiveAdditions,
   termsAndConditions,
   hotels,
+  selectedPlaces,
 }) => {
   return (
     <div className="space-y-8">
@@ -79,6 +156,17 @@ const Overview = ({
         </h1>
         <p className="text-gray-800 text-base sm:text-lg mt-3 leading-relaxed customfontstitle">
           {tripData.description}
+        </p>
+      </div>
+
+      {/* Destination Information */}
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+        <h2 className="text-2xl font-semibold mb-3 text-gray-800 flex items-center gap-2 customfontstitle">
+          <MapPin className="w-6 h-6 text-red-500" />
+          Destinations
+        </h2>
+        <p className="text-gray-800 text-base leading-relaxed">
+          {formatDestinationText(tripData.destination, tripData.destinations, selectedPlaces)}
         </p>
       </div>
 

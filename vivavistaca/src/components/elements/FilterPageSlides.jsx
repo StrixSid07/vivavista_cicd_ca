@@ -12,7 +12,7 @@ import Overview from "./Overview";
 import PriceCalendar from "./PriceCalendarCard";
 
 // ✅ Memoized components
-const OverviewComponent = React.memo(({ tripData, availableCountries, whatsIncluded, exclusiveAdditions, termsAndConditions, hotels }) => (
+const OverviewComponent = React.memo(({ tripData, availableCountries, whatsIncluded, exclusiveAdditions, termsAndConditions, hotels, selectedPlaces }) => (
   <div className="md:p-4">
     <Overview
       tripData={tripData}
@@ -21,6 +21,7 @@ const OverviewComponent = React.memo(({ tripData, availableCountries, whatsInclu
       exclusiveAdditions={exclusiveAdditions}
       termsAndConditions={termsAndConditions}
       hotels={hotels}
+      selectedPlaces={selectedPlaces}
     />
   </div>
 ));
@@ -83,6 +84,7 @@ const FilterPageSlides = ({
   priceMap,
   activeTab,
   setActiveTab,
+  selectedPlaces,
 }) => {
   // Remove local activeTab state since it's now controlled by the parent
   // const [activeTab, setActiveTab] = useState("overview");
@@ -127,6 +129,7 @@ const FilterPageSlides = ({
             exclusiveAdditions={exclusiveAdditions}
             termsAndConditions={termsAndConditions}
             hotels={hotels}
+            selectedPlaces={selectedPlaces}
           />
         );
       case "itinerary":
@@ -173,6 +176,7 @@ const FilterPageSlides = ({
     exclusiveAdditions,
     termsAndConditions,
     hotels,
+    selectedPlaces,
   ]);
 
   return (

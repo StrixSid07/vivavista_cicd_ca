@@ -16,6 +16,82 @@ import { MdEmail } from "react-icons/md";
 import { Base_Url } from "../../utils/Api";
 import SimilarDealsSlider from "../elements/SimilarDealsSlider";
 import { LeadContext } from "../../contexts/LeadContext";
+
+// Helper function to format destination text with places
+const formatDestinationText = (primaryDestination, additionalDestinations, selectedPlaces) => {
+  if (!primaryDestination && (!additionalDestinations || !additionalDestinations.length)) {
+    return "Unknown Location";
+  }
+  
+  // Create a map of all places from all destinations for easy lookup
+  const allPlacesMap = {};
+  
+  // Add places from primary destination
+  if (primaryDestination && primaryDestination.places && primaryDestination.places.length > 0) {
+    primaryDestination.places.forEach(place => {
+      allPlacesMap[place._id] = place.name;
+    });
+  }
+  
+  // Add places from additional destinations
+  if (additionalDestinations && additionalDestinations.length > 0) {
+    additionalDestinations.forEach(dest => {
+      if (dest.places && dest.places.length > 0) {
+        dest.places.forEach(place => {
+          allPlacesMap[place._id] = place.name;
+        });
+      }
+    });
+  }
+  
+  // Create a map to associate selected places with destinations
+  const selectedPlacesMap = {};
+  
+  // If selectedPlaces exists, organize them by destination
+  if (selectedPlaces && selectedPlaces.length > 0) {
+    selectedPlaces.forEach(place => {
+      const destId = place.destinationId?._id || place.destinationId;
+      if (!selectedPlacesMap[destId]) {
+        selectedPlacesMap[destId] = [];
+      }
+      // Use the place name from allPlacesMap if available, otherwise use the ID
+      const placeId = place.placeId?._id || place.placeId;
+      const placeName = allPlacesMap[placeId] || place.placeId?.name || "Place";
+      selectedPlacesMap[destId].push(placeName);
+    });
+  }
+  
+  // Format primary destination with its places
+  let result = "";
+  if (primaryDestination) {
+    result = primaryDestination.name || primaryDestination;
+    const primaryDestId = primaryDestination._id;
+    if (selectedPlacesMap[primaryDestId] && selectedPlacesMap[primaryDestId].length > 0) {
+      result += ` (${selectedPlacesMap[primaryDestId].join(", ")})`;
+    }
+  }
+  
+  // Add additional destinations with their places
+  if (additionalDestinations && additionalDestinations.length > 0) {
+    const formattedDestinations = additionalDestinations.map(dest => {
+      const destId = dest._id;
+      const destName = dest.name;
+      if (selectedPlacesMap[destId] && selectedPlacesMap[destId].length > 0) {
+        return `${destName} (${selectedPlacesMap[destId].join(", ")})`;
+      }
+      return destName;
+    });
+    
+    if (result) {
+      result += `, ${formattedDestinations.join(", ")}`;
+    } else {
+      result = formattedDestinations.join(", ");
+    }
+  }
+  
+  return result;
+};
+
 const FilterPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -29,6 +105,7 @@ const FilterPage = () => {
   const [termsAndConditions, setTermsAndConditions] = useState([]);
   const [whatsIncluded, setWhatsIncluded] = useState([]);
   const [itinerary, setItinerary] = useState([]);
+  const [selectedPlaces, setSelectedPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const rating = hotels?.[0]?.tripAdvisorRating;
   const reviews = hotels?.[0]?.tripAdvisorReviews;
@@ -102,12 +179,20 @@ const FilterPage = () => {
         const data = res.data;
         console.log("this is fetch filter page data", data);
         console.log("Videos from API:", data.videos);
+        console.log("Destination data:", data.destination);
+        console.log("Additional destinations:", data.destinations);
+        console.log("Selected places:", data.selectedPlaces);
+        
+        // Store the full destination data
+        const fullDestination = data.destination;
+        const fullDestinations = data.destinations || [];
+        
         // Map trip details
         setTripData({
           title: data.title,
           tag: data.tag,
           description: data.description,
-          destination: data.destination,
+          destination: fullDestination,
           boardBasis: data.boardBasis,
           distanceToCenter: `${data.distanceToCenter} km`,
           distanceToBeach: `${data.distanceToBeach} km`,
@@ -117,7 +202,7 @@ const FilterPage = () => {
           rooms: data.rooms,
           guests: data.guests,
           LowDeposite: data.LowDeposite,
-          destinations: data.destinations,
+          destinations: fullDestinations,
         });
 
         // Set images
@@ -125,6 +210,11 @@ const FilterPage = () => {
         
         // Set videos (only include ready videos)
         setVideos(data.videos?.filter(video => video.status === "ready") || []);
+        
+        // Set selectedPlaces if available
+        if (data.selectedPlaces && Array.isArray(data.selectedPlaces)) {
+          setSelectedPlaces(data.selectedPlaces);
+        }
         
         // Transform prices data
         setPrices(
@@ -309,10 +399,7 @@ const FilterPage = () => {
                     <MapPin className="w-4 h-4 text-red-500" />
                     {tripData.destinations && tripData.destinations.length > 0 ? (
                       <span>
-                        {tripData.destination?.name}
-                        {tripData.destinations.length > 0 && (
-                          <>, {tripData.destinations.map(dest => dest.name).join(', ')}</>
-                        )}
+                        {formatDestinationText(tripData.destination, tripData.destinations, selectedPlaces)}
                       </span>
                     ) : (
                       tripData.destination?.name || "Unknown Location"
@@ -353,10 +440,7 @@ const FilterPage = () => {
                     <MapPin className="w-6 h-7 text-red-500" />
                     {tripData.destinations && tripData.destinations.length > 0 ? (
                       <span>
-                        {tripData.destination?.name}
-                        {tripData.destinations.length > 0 && (
-                          <>, {tripData.destinations.map(dest => dest.name).join(', ')}</>
-                        )}
+                        {formatDestinationText(tripData.destination, tripData.destinations, selectedPlaces)}
                       </span>
                     ) : (
                       tripData.destination?.name || "Unknown Location"
@@ -517,6 +601,7 @@ const FilterPage = () => {
               priceMap={priceMap}
               activeTab={activeTab}
               setActiveTab={setActiveTab}
+              selectedPlaces={selectedPlaces}
             />
           </div>
           <div className="rounded-xl relative overflow-x-hidden shadow-md bg-gray-200 z-10">

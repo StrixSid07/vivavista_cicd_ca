@@ -498,14 +498,6 @@ const getDealById = async (req, res) => {
         select: "name",
       })
       .populate({
-        path: "selectedPlaces.placeId",
-        select: "name",
-      })
-      .populate({
-        path: "selectedPlaces.destinationId",
-        select: "name",
-      })
-      .populate({
         path: "holidaycategories",
         select: "name",
       })

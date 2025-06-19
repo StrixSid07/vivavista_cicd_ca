@@ -491,32 +491,78 @@ const getDealById = async (req, res) => {
   try {
     console.log("Deal ID requested:", req.params.id);
     
-    const deal = await Deal.findById(req.params.id)
-      .populate("destination")
-      .populate({
-        path: "destinations",
-        select: "name places",
-      })
-      .populate({
-        path: "holidaycategories",
-        select: "name",
-      })
-      .populate({
-        path: "boardBasis",
-        select: "name",
-      })
-      .populate({
-        path: "hotels",
-        select: "name stars about rooms tripAdvisorRating facilities location images tripAdvisorPhotos tripAdvisorReviews tripAdvisorLatestReviews tripAdvisorLink externalBookingLink",
-      })
-      .populate({
-        path: "prices.hotel",
-        select: "name tripAdvisorRating tripAdvisorReviews",
-      })
-      .populate({
-        path: "prices.airport",
-        select: "name code location category",
+    let deal;
+    
+    // First try to find by MongoDB ID
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      deal = await Deal.findById(req.params.id)
+        .populate("destination")
+        .populate({
+          path: "destinations",
+          select: "name places",
+        })
+        .populate({
+          path: "holidaycategories",
+          select: "name",
+        })
+        .populate({
+          path: "boardBasis",
+          select: "name",
+        })
+        .populate({
+          path: "hotels",
+          select: "name stars about rooms tripAdvisorRating facilities location images tripAdvisorPhotos tripAdvisorReviews tripAdvisorLatestReviews tripAdvisorLink externalBookingLink",
+        })
+        .populate({
+          path: "prices.hotel",
+          select: "name tripAdvisorRating tripAdvisorReviews",
+        })
+        .populate({
+          path: "prices.airport",
+          select: "name code location category",
+        });
+    }
+    
+    // If not found by ID, try to find by title (slugified)
+    if (!deal) {
+      const allDeals = await Deal.find()
+        .populate("destination")
+        .populate({
+          path: "destinations",
+          select: "name places",
+        })
+        .populate({
+          path: "holidaycategories",
+          select: "name",
+        })
+        .populate({
+          path: "boardBasis",
+          select: "name",
+        })
+        .populate({
+          path: "hotels",
+          select: "name stars about rooms tripAdvisorRating facilities location images tripAdvisorPhotos tripAdvisorReviews tripAdvisorLatestReviews tripAdvisorLink externalBookingLink",
+        })
+        .populate({
+          path: "prices.hotel",
+          select: "name tripAdvisorRating tripAdvisorReviews",
+        })
+        .populate({
+          path: "prices.airport",
+          select: "name code location category",
+        });
+      
+      // Find deal by slugified title
+      deal = allDeals.find(d => {
+        // Slugify the title by removing spaces and special characters
+        const slugifiedTitle = d.title
+          .toLowerCase()
+          .replace(/\s+/g, "")
+          .replace(/[^a-z0-9]/g, "");
+        
+        return slugifiedTitle === req.params.id.toLowerCase();
       });
+    }
 
     console.log("Raw deal data:", JSON.stringify(deal, null, 2));
 

@@ -443,22 +443,6 @@ const getAllDeals = async (req, res) => {
       return deal;
     });
 
-    // Expand prices by each airport if it's an array
-    const expandedPrices = [];
-    deal.prices.forEach(priceObj => {
-      if (Array.isArray(priceObj.airport)) {
-        for (const airport of priceObj.airport) {
-          expandedPrices.push({
-            ...priceObj.toObject(),
-            airport: airport
-          });
-        }
-      } else {
-        expandedPrices.push(priceObj);
-      }
-    });
-    deal.prices = expandedPrices;
-
     console.log("🚀 ~ getAllDeals ~ deals:", deals);
     res.json(deals);
   } catch (error) {

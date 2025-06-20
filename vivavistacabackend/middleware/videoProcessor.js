@@ -1,5 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
+const crypto = require('crypto');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffprobePath = require('ffprobe-static').path;
@@ -11,6 +12,22 @@ require("dotenv").config();
 
 // Get the server URL from environment or use default
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:5003";
+
+/**
+ * Generate a unique filename for an uploaded file
+ * @param {string} originalFilename - Original filename
+ * @returns {string} - Unique filename
+ */
+const generateUniqueFilename = (originalFilename) => {
+  const timestamp = Date.now();
+  const randomString = crypto.randomBytes(8).toString('hex');
+  const sanitizedFilename = originalFilename
+    .toLowerCase()
+    .replace(/[^a-z0-9.]/g, '-')
+    .replace(/--+/g, '-');
+  
+  return `${timestamp}-${randomString}-${sanitizedFilename}`;
+};
 
 /**
  * Convert a video to WebM format
@@ -27,8 +44,12 @@ const convertToWebm = (filePath, options = { component: 'general' }) => {
       await fs.ensureDir(uploadDir);
 
       const parsedPath = path.parse(filePath);
-      const filename = `${parsedPath.name}.webm`;
+      // Generate unique filename for the WebM file
+      const uniqueBasename = generateUniqueFilename(parsedPath.name);
+      const filename = `${uniqueBasename}.webm`;
       const webmPath = path.join(uploadDir, filename);
+
+      console.log(`🎥 Converting video to WebM with unique filename: ${filename}`);
 
       ffmpeg(filePath)
         .outputOptions('-c:v libvpx-vp9')

@@ -165,7 +165,7 @@ const createDeal = async (req, res) => {
     if (req.files && req.files.images && req.files.images.length) {
       console.log("🚀 ~ createDeal ~ Processing images:", req.files.images.length);
       try {
-        imageUrls = await Promise.all(
+      imageUrls = await Promise.all(
           req.files.images.map(async (file) => {
             try {
               const url = await processUploadedFile(file, 'deal');
@@ -189,13 +189,13 @@ const createDeal = async (req, res) => {
     if (req.files && req.files.videos && req.files.videos.length) {
       console.log("🚀 ~ createDeal ~ Processing videos:", req.files.videos.length);
       try {
-        req.files.videos.forEach(file => {
+      req.files.videos.forEach(file => {
           console.log(`✅ Video received: ${file.originalname}, path: ${file.path}`);
-          videoData.push({
-            url: file.path, // Temporary path
-            status: 'processing',
-          });
+        videoData.push({
+          url: file.path, // Temporary path
+          status: 'processing',
         });
+      });
       } catch (error) {
         console.error("❌ Error processing videos:", error);
         return res.status(500).json({ message: "Error processing videos", error: error.message });
@@ -241,16 +241,16 @@ const createDeal = async (req, res) => {
     if (newDeal.videos && newDeal.videos.length > 0) {
       console.log("🚀 ~ createDeal ~ Adding video processing jobs to queue");
       try {
-        newDeal.videos.forEach(video => {
-          if (video.status === 'processing') {
-            videoQueue.add('process-video', {
-              dealId: newDeal._id,
-              videoId: video._id,
-              tempFilePath: video.url,
-            });
+      newDeal.videos.forEach(video => {
+        if (video.status === 'processing') {
+          videoQueue.add('process-video', {
+            dealId: newDeal._id,
+            videoId: video._id,
+            tempFilePath: video.url,
+          });
             console.log(`✅ Video job added to queue: ${video._id}`);
-          }
-        });
+        }
+      });
       } catch (error) {
         console.error("❌ Error adding video jobs to queue:", error);
         // Continue execution even if queue fails
@@ -458,46 +458,33 @@ const getAllDeals = async (req, res) => {
       }
     }
     console.log("🚀 ~ getAllDeals ~ deals:", deals);
-    // ✅ Filter flight details based on the selected airport
-    // deals = deals
-    //   .map((deal) => {
-    //     const relevantPrices = deal.prices.filter((p) => {
-    //       const matchAirport = !airport || p.airport === airport;
-    //       // const matchDate = (!fromdate || new Date(p.date) >= new Date(fromdate)) &&
-    //       //                   (!enddate || new Date(p.date) <= new Date(enddate));
-    //       return matchAirport;
-    //     });
 
-    //     return relevantPrices.length > 0
-    //       ? { ...deal, prices: relevantPrices }
-    //       : null;
-    //   })
-    //   .filter(Boolean);
-
-    // ✅ Sort prices inside each deal
+    // ✅ Sort prices inside each deal and expand airports
     deals = deals.map((deal) => {
       if (sort === "highest-price") {
         deal.prices.sort((a, b) => b.price - a.price);
       } else {
         deal.prices.sort((a, b) => a.price - b.price);
       }
-      
-      // Expand prices by each airport if it's an array
-      const expandedPrices = [];
+
+    // Expand prices by each airport if it's an array
+    const expandedPrices = [];
       if (deal.prices && deal.prices.length > 0) {
-        deal.prices.forEach(priceObj => {
-          if (Array.isArray(priceObj.airport)) {
-            for (const airport of priceObj.airport) {
-              expandedPrices.push({
+    deal.prices.forEach(priceObj => {
+      if (Array.isArray(priceObj.airport)) {
+        for (const airport of priceObj.airport) {
+          expandedPrices.push({
                 ...priceObj,
-                airport: airport
-              });
-            }
-          } else {
-            expandedPrices.push(priceObj);
-          }
-        });
-        deal.prices = expandedPrices;
+            airport: airport
+          });
+        }
+      } else {
+        expandedPrices.push(priceObj);
+      }
+    });
+        
+        // Replace the original prices array with the expanded one
+    deal.prices = expandedPrices;
       }
       
       return deal;
@@ -510,6 +497,7 @@ const getAllDeals = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 // ✅ Get All Deals for Admin
 const getAllDealsAdmin = async (req, res) => {
   try {
@@ -615,20 +603,38 @@ const getDealById = async (req, res) => {
       return res.status(404).json({ message: "Deal not found" });
     }
 
-    // Filter prices for future dates
+    // Calculate date threshold for future prices
     const today = new Date();
     const threeDaysFromNow = new Date(today);
     threeDaysFromNow.setDate(today.getDate() + 3);
 
-    let filteredPrices = deal.prices.filter((price) => {
+    // Expand prices by each airport if it's an array
+    const expandedPrices = [];
+    for (const price of deal.prices || []) {
+      const priceObj = price.toObject ? price.toObject() : price;
+
+      if (Array.isArray(priceObj.airport)) {
+        for (const airport of priceObj.airport) {
+          expandedPrices.push({
+            ...priceObj,
+            airport,
+          });
+        }
+      } else {
+        expandedPrices.push(priceObj);
+      }
+    }
+
+    // Filter for future dates
+    let filteredPrices = expandedPrices.filter((price) => {
       const startDate = new Date(price.startdate);
       return startDate >= threeDaysFromNow;
     });
 
-    console.log("Filtered prices count:", filteredPrices.length);
-
     // Sort prices by startdate
     filteredPrices.sort((a, b) => new Date(a.startdate) - new Date(b.startdate));
+
+    console.log("Filtered prices count:", filteredPrices.length);
 
     // Create a new deal object with filtered prices
     const dealWithFilteredPrices = {

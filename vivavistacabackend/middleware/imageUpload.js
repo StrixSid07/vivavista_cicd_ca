@@ -1,11 +1,24 @@
 const multer = require("multer");
 const fs = require("fs-extra");
 const path = require("path");
+const crypto = require('crypto');
 const { convertToWebP, deleteLocalImage, ensureUploadDirectories } = require("./imageProcessor");
 require("dotenv").config();
 
 // Get the server URL from environment or use default
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:5003";
+
+// Generate a unique filename for an uploaded file
+const generateUniqueFilename = (originalFilename) => {
+  const timestamp = Date.now();
+  const randomString = crypto.randomBytes(8).toString('hex');
+  const sanitizedFilename = originalFilename
+    .toLowerCase()
+    .replace(/[^a-z0-9.]/g, '-')
+    .replace(/--+/g, '-');
+  
+  return `${timestamp}-${randomString}-${sanitizedFilename}`;
+};
 
 // Ensure upload directories exist on server start
 ensureUploadDirectories().catch(err => {
@@ -17,11 +30,15 @@ const localStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Use a temporary directory for initial upload
     const uploadPath = path.join(process.cwd(), 'uploads', 'temp');
+    console.log(`📁 [mediaUpload] Storing ${file.fieldname} in temp directory: ${uploadPath}`);
     fs.ensureDirSync(uploadPath);
+    console.log(`📁 [mediaUpload] Directory exists: ${fs.existsSync(uploadPath)}`);
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+    const uniqueFilename = generateUniqueFilename(file.originalname);
+    console.log(`🔤 [mediaUpload] Generated filename: ${uniqueFilename}`);
+    cb(null, uniqueFilename);
   },
 });
 

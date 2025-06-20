@@ -44,8 +44,10 @@ const CalendarView = ({
       const idprice = pricesid[i];
       const fullKey = `${formattedDate}_${idprice}`;
 
-      const airport = departureAirports[i % departureAirports.length][0]; // Access the first element of the array
-      console;
+      // Safely access the airport, ensuring it exists and has the expected structure
+      const airportArray = departureAirports[i % departureAirports.length];
+      const airport = Array.isArray(airportArray) && airportArray.length > 0 ? airportArray[0] : airportArray;
+      
       return {
         date,
         airport,
@@ -54,12 +56,19 @@ const CalendarView = ({
     });
 
     console.log("this is all parsed dates", allParsedDates);
+    
+    // Filter out entries with invalid airports and then filter by selected airport
     const finaldata = allParsedDates.filter(
-      (d) => d.airport._id === selectedAirport
+      (d) => d.airport && d.airport._id && d.airport._id === selectedAirport
     );
+    
     console.log("this is all finaldata", finaldata);
-    const finaltwo = finaldata.filter((d) => d.price.priceswitch === false);
+    
+    // Safely filter by priceswitch, ensuring price object has the expected structure
+    const finaltwo = finaldata.filter((d) => d.price && d.price.priceswitch === false);
+    
     console.log("this is final two", finaltwo);
+    
     const finalThree = finaltwo.map((d) => {
       // Destructure the price object and remove the 'priceswitch' field
       const { price, ...rest } = d;
@@ -68,15 +77,9 @@ const CalendarView = ({
         price: price.value, // Keep only the price value
       };
     });
-    // Filter the parsed dates based on the selected airport (_id matches)
-    // const lowestPrice = Math.min(...finaldata.map((d) => d.price));
-    // console.log(typeof setLedprice, lowestPrice);
-    // if (typeof setLedprice === "function") {
-    //   setLedprice(lowestPrice); // or any price you want to set after filtering etc.
-    // }
 
     return finalThree; // Compare by _id
-  }, [departureDates, departureAirports, priceMap, selectedAirport]);
+  }, [departureDates, departureAirports, priceMap, selectedAirport, pricesid]);
 
   console.log("parsh data", parsedDates);
   const [currentMonth, setCurrentMonth] = useState(
@@ -85,22 +88,46 @@ const CalendarView = ({
 
   const dateMap = useMemo(() => {
     const map = {};
+    
+    if (!Array.isArray(parsedDates)) return map;
+    
     parsedDates.forEach(({ date, airport, price }) => {
+      if (!date) return;
+      
       const key = date.format("DD/MM/YYYY");
       if (!map[key]) map[key] = [];
-      map[key].push({ airport, price });
+      
+      // Only add entries with valid airport and price
+      if (airport && price !== undefined) {
+        map[key].push({ airport, price });
+      }
     });
+    
     return map;
   }, [parsedDates]);
 
   const priceswitchDates = useMemo(() => {
     const map = new Map();
 
-    priceswitch.forEach((item) => {
-      if (!item.priceswitch) return;
+    if (!priceswitch || !Array.isArray(priceswitch)) return map;
 
-      const formattedStartDate = dayjs(item.startdate).format("DD/MM/YYYY");
-      const airportId = item.airport[0]?._id;
+    priceswitch.forEach((item) => {
+      if (!item || !item.priceswitch) return;
+
+      const formattedStartDate = item.startdate ? dayjs(item.startdate).format("DD/MM/YYYY") : null;
+      
+      // Safely access airport ID
+      let airportId = null;
+      if (item.airport) {
+        if (Array.isArray(item.airport) && item.airport.length > 0) {
+          const airport = item.airport[0];
+          airportId = airport && typeof airport === 'object' ? airport._id : airport;
+        } else if (typeof item.airport === 'object') {
+          airportId = item.airport._id;
+        } else {
+          airportId = item.airport;
+        }
+      }
 
       if (formattedStartDate && airportId) {
         map.set(`${formattedStartDate}_${airportId}`, true);
@@ -132,21 +159,27 @@ const CalendarView = ({
   }
 
   const handleMonthChange = (direction) => {
+    if (!Array.isArray(parsedDates) || parsedDates.length === 0) return;
+    
     const currentIndex = parsedDates.findIndex((d) =>
-      d.date.isSame(currentMonth, "month")
+      d && d.date && d.date.isSame && d.date.isSame(currentMonth, "month")
     );
+    
+    if (currentIndex === -1) return;
 
     let target;
     if (direction === "prev") {
       for (let i = currentIndex - 1; i >= 0; i--) {
-        if (!parsedDates[i].date.isSame(currentMonth, "month")) {
+        if (parsedDates[i] && parsedDates[i].date && 
+            !parsedDates[i].date.isSame(currentMonth, "month")) {
           target = parsedDates[i].date;
           break;
         }
       }
     } else if (direction === "next") {
       for (let i = currentIndex + 1; i < parsedDates.length; i++) {
-        if (!parsedDates[i].date.isSame(currentMonth, "month")) {
+        if (parsedDates[i] && parsedDates[i].date && 
+            !parsedDates[i].date.isSame(currentMonth, "month")) {
           target = parsedDates[i].date;
           break;
         }
@@ -182,15 +215,24 @@ const CalendarView = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
   useEffect(() => {
-    if (!parsedDates.length) return;
+    if (!Array.isArray(parsedDates) || parsedDates.length === 0) return;
 
     const datesInCurrentMonth = parsedDates.filter((d) =>
-      d.date.isSame(currentMonth, "month")
+      d && d.date && d.date.isSame && d.date.isSame(currentMonth, "month")
     );
 
     if (datesInCurrentMonth.length > 0) {
-      const lowestPrice = Math.min(...datesInCurrentMonth.map((d) => d.price));
-      setLeadPrice(lowestPrice);
+      // Make sure all prices are valid numbers
+      const validPrices = datesInCurrentMonth
+        .map((d) => d.price)
+        .filter(price => typeof price === 'number' && !isNaN(price));
+      
+      if (validPrices.length > 0) {
+        const lowestPrice = Math.min(...validPrices);
+        if (typeof setLeadPrice === 'function') {
+          setLeadPrice(lowestPrice);
+        }
+      }
     }
   }, [currentMonth, parsedDates, setLeadPrice]);
 
@@ -321,9 +363,9 @@ const CalendarView = ({
               dealId={dealIdform}
               dealtitle={dealtitle}
               adultCount={adultCount}
-              totalPrice={selectedDayInfo?.info?.price}
+              totalPrice={selectedDayInfo?.info?.[0]?.price}
               selectedDate={selectedDayInfo?.date}
-              airport={selectedDayInfo?.info[0]?.airport?._id}
+              airport={selectedDayInfo?.info?.[0]?.airport?._id}
               handleClose={() => setOpenDialog(false)}
             />
           </div>

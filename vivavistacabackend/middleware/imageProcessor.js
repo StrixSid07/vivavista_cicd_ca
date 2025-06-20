@@ -1,10 +1,27 @@
 const fs = require('fs-extra');
 const path = require('path');
 const sharp = require('sharp');
+const crypto = require('crypto');
 require("dotenv").config();
 
 // Get the server URL from environment or use default
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:5003";
+
+/**
+ * Generate a unique filename for an uploaded file
+ * @param {string} originalFilename - Original filename
+ * @returns {string} - Unique filename
+ */
+const generateUniqueFilename = (originalFilename) => {
+  const timestamp = Date.now();
+  const randomString = crypto.randomBytes(8).toString('hex');
+  const sanitizedFilename = originalFilename
+    .toLowerCase()
+    .replace(/[^a-z0-9.]/g, '-')
+    .replace(/--+/g, '-');
+  
+  return `${timestamp}-${randomString}-${sanitizedFilename}`;
+};
 
 /**
  * Convert an image to WebP format
@@ -24,7 +41,7 @@ const convertToWebP = async (filePath, options = { quality: 80, component: 'gene
     console.log(`📁 Ensuring directory exists: ${uploadDir}`);
     
     try {
-      await fs.ensureDir(uploadDir);
+    await fs.ensureDir(uploadDir);
       console.log(`✅ Directory ensured: ${uploadDir}`);
     } catch (dirError) {
       console.error(`❌ Error ensuring directory: ${dirError.message}`);
@@ -33,16 +50,18 @@ const convertToWebP = async (filePath, options = { quality: 80, component: 'gene
     
     // Create WebP output path by changing the extension and moving to component directory
     const parsedPath = path.parse(filePath);
-    const filename = `${parsedPath.name}.webp`;
+    // Generate unique filename for the WebP file
+    const uniqueBasename = generateUniqueFilename(parsedPath.name);
+    const filename = `${uniqueBasename}.webp`;
     const webpPath = path.join(uploadDir, filename);
     console.log(`🖼️ WebP output path: ${webpPath}`);
     
     // Convert to WebP using sharp
     try {
       console.log(`🔄 Starting WebP conversion for: ${filePath}`);
-      await sharp(filePath)
-        .webp({ quality: options.quality })
-        .toFile(webpPath);
+    await sharp(filePath)
+      .webp({ quality: options.quality })
+      .toFile(webpPath);
       console.log(`✅ WebP conversion successful: ${webpPath}`);
     } catch (sharpError) {
       console.error(`❌ Sharp conversion error: ${sharpError.message}`);
@@ -51,7 +70,7 @@ const convertToWebP = async (filePath, options = { quality: 80, component: 'gene
     
     // Delete the original file if WebP conversion was successful
     try {
-      await fs.unlink(filePath);
+    await fs.unlink(filePath);
       console.log(`🗑️ Original file deleted: ${filePath}`);
     } catch (unlinkError) {
       console.error(`⚠️ Warning: Could not delete original file: ${unlinkError.message}`);

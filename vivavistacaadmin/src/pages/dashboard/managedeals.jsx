@@ -526,6 +526,11 @@ export const ManageDeals = () => {
       // Create form data
       const formDataToSend = new FormData();
       
+      console.log("DEBUG - newImages:", newImages);
+      console.log("DEBUG - newImages length:", newImages.length);
+      console.log("DEBUG - newVideos:", newVideos);
+      console.log("DEBUG - newVideos length:", newVideos.length);
+      
       // Add all the form fields
       const dataToSend = {
         ...formData,
@@ -534,28 +539,50 @@ export const ManageDeals = () => {
       
       // Add images
       if (newImages.length > 0) {
-        newImages.forEach((image) => {
-          formDataToSend.append("images", image);
+        newImages.forEach((image, index) => {
+          console.log(`DEBUG - Adding image ${index}:`, image.name);
+          formDataToSend.append("images", image, image.name);
         });
       }
       
       // Add videos
       if (newVideos.length > 0) {
-        newVideos.forEach((video) => {
-          formDataToSend.append("videos", video);
+        newVideos.forEach((video, index) => {
+          console.log(`DEBUG - Adding video ${index}:`, video.name);
+          formDataToSend.append("videos", video, video.name);
         });
       }
       
       // Add the rest of the data
       formDataToSend.append("data", JSON.stringify(dataToSend));
       
+      // Log FormData contents (this won't show the actual files but will confirm they're attached)
+      console.log("DEBUG - FormData entries:");
+      for (let pair of formDataToSend.entries()) {
+        console.log(pair[0], pair[1] instanceof File ? `File: ${pair[1].name}` : pair[1]);
+      }
+      
       // Send the request
       if (currentDeal) {
-        await axios.put(`/deals/${currentDeal._id}`, formDataToSend);
-        setAlert({ message: "Deal updated successfully!", type: "green" });
+        console.log("DEBUG - Sending PUT request to update deal");
+        try {
+          const response = await axios.put(`/deals/${currentDeal._id}`, formDataToSend);
+          console.log("DEBUG - PUT request successful:", response.data);
+          setAlert({ message: "Deal updated successfully!", type: "green" });
+        } catch (error) {
+          console.error("DEBUG - PUT request failed:", error.response || error);
+          setAlert({ message: `Error updating deal: ${error.response?.data?.message || error.message}`, type: "red" });
+        }
       } else {
-        await axios.post("/deals", formDataToSend);
-        setAlert({ message: "Deal created successfully!", type: "green" });
+        console.log("DEBUG - Sending POST request to create deal");
+        try {
+          const response = await axios.post("/deals", formDataToSend);
+          console.log("DEBUG - POST request successful:", response.data);
+          setAlert({ message: "Deal created successfully!", type: "green" });
+        } catch (error) {
+          console.error("DEBUG - POST request failed:", error.response || error);
+          setAlert({ message: `Error creating deal: ${error.response?.data?.message || error.message}`, type: "red" });
+        }
       }
       
       // Reset form and close dialog
@@ -2812,6 +2839,7 @@ export const ManageDeals = () => {
                 type="file"
                 multiple
                 ref={fileInputRef}
+                name="images"
                 accept="image/jpeg,image/jpg,image/png"
                 label="Choose Image"
                 onChange={(e) => {
@@ -2879,6 +2907,7 @@ export const ManageDeals = () => {
                   type="file"
                   label="Upload Videos"
                   multiple
+                  name="videos"
                   accept="video/mp4,video/mpeg,video/quicktime,video/x-matroska,video/x-msvideo"
                   onChange={(e) => {
                     const files = Array.from(e.target.files);

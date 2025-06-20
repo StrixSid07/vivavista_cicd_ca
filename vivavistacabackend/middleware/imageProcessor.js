@@ -16,33 +16,60 @@ const SERVER_URL = process.env.SERVER_URL || "http://localhost:5003";
  */
 const convertToWebP = async (filePath, options = { quality: 80, component: 'general' }) => {
   try {
+    console.log(`🔍 convertToWebP called with filePath: ${filePath}, component: ${options.component}`);
+    
     // Create component directory if it doesn't exist
     const component = options.component || 'general';
     const uploadDir = path.join(process.cwd(), 'uploads', component);
-    await fs.ensureDir(uploadDir);
+    console.log(`📁 Ensuring directory exists: ${uploadDir}`);
+    
+    try {
+      await fs.ensureDir(uploadDir);
+      console.log(`✅ Directory ensured: ${uploadDir}`);
+    } catch (dirError) {
+      console.error(`❌ Error ensuring directory: ${dirError.message}`);
+      throw dirError;
+    }
     
     // Create WebP output path by changing the extension and moving to component directory
     const parsedPath = path.parse(filePath);
     const filename = `${parsedPath.name}.webp`;
     const webpPath = path.join(uploadDir, filename);
+    console.log(`🖼️ WebP output path: ${webpPath}`);
     
     // Convert to WebP using sharp
-    await sharp(filePath)
-      .webp({ quality: options.quality })
-      .toFile(webpPath);
+    try {
+      console.log(`🔄 Starting WebP conversion for: ${filePath}`);
+      await sharp(filePath)
+        .webp({ quality: options.quality })
+        .toFile(webpPath);
+      console.log(`✅ WebP conversion successful: ${webpPath}`);
+    } catch (sharpError) {
+      console.error(`❌ Sharp conversion error: ${sharpError.message}`);
+      throw sharpError;
+    }
     
     // Delete the original file if WebP conversion was successful
-    await fs.unlink(filePath);
-    
-    console.log(`✅ Image converted to WebP: ${webpPath}`);
+    try {
+      await fs.unlink(filePath);
+      console.log(`🗑️ Original file deleted: ${filePath}`);
+    } catch (unlinkError) {
+      console.error(`⚠️ Warning: Could not delete original file: ${unlinkError.message}`);
+      // Continue execution even if deletion fails
+    }
     
     // Return the full server URL path for database storage
-    return `${SERVER_URL}/uploads/${component}/${filename}`;
+    const fullUrl = `${SERVER_URL}/uploads/${component}/${filename}`;
+    console.log(`🔗 Returning URL: ${fullUrl}`);
+    return fullUrl;
   } catch (error) {
-    console.error(`❌ Error converting image to WebP: ${error.message}`);
+    console.error(`❌ Error in convertToWebP: ${error.message}`);
+    console.error(error.stack);
     // If conversion fails, return the original path with server URL
     const relativePath = filePath.replace(process.cwd(), '');
-    return `${SERVER_URL}${relativePath}`;
+    const fallbackUrl = `${SERVER_URL}${relativePath}`;
+    console.log(`⚠️ Returning fallback URL: ${fallbackUrl}`);
+    return fallbackUrl;
   }
 };
 
@@ -103,7 +130,9 @@ const ensureUploadDirectories = async () => {
     'autoslider',
     'destination',
     'blog',
-    'general'
+    'general',
+    'temp',
+    'dealvideos'
   ];
   
   for (const component of components) {

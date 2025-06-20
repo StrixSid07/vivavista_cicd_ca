@@ -1,5 +1,5 @@
-const Deal = require("../models/Deal");
 const mongoose = require("mongoose");
+const Deal = require("../models/Deal");
 const Airport = require("../models/Airport");
 const Hotel = require("../models/Hotel");
 const Destination = require("../models/Destination");
@@ -60,7 +60,15 @@ const manageFeaturedDealsLimit = async (newDealId) => {
 // ✅ Create a New Deal with Image Upload
 const createDeal = async (req, res) => {
   try {
+    console.log("🚀 ~ createDeal ~ Request received with files:", req.files ? Object.keys(req.files) : "No files");
+    
     const parsedData = JSON.parse(req.body.data);
+    console.log("🚀 ~ createDeal ~ Parsed data received:", { 
+      title: parsedData.title, 
+      hasImages: req.files && req.files.images ? req.files.images.length : 0,
+      hasVideos: req.files && req.files.videos ? req.files.videos.length : 0
+    });
+    
     const {
       title,
       description,
@@ -155,20 +163,43 @@ const createDeal = async (req, res) => {
     // Extract image URLs
     let imageUrls = [];
     if (req.files && req.files.images && req.files.images.length) {
-      imageUrls = await Promise.all(
-        req.files.images.map((file) => processUploadedFile(file, 'deal'))
-      );
+      console.log("🚀 ~ createDeal ~ Processing images:", req.files.images.length);
+      try {
+        imageUrls = await Promise.all(
+          req.files.images.map(async (file) => {
+            try {
+              const url = await processUploadedFile(file, 'deal');
+              console.log(`✅ Image processed successfully: ${url}`);
+              return url;
+            } catch (err) {
+              console.error(`❌ Error processing image: ${err.message}`);
+              throw err;
+            }
+          })
+        );
+        console.log("🚀 ~ createDeal ~ All images processed:", imageUrls);
+      } catch (error) {
+        console.error("❌ Error processing images:", error);
+        return res.status(500).json({ message: "Error processing images", error: error.message });
+      }
     }
 
     // Prepare video data without processing
     const videoData = [];
     if (req.files && req.files.videos && req.files.videos.length) {
-      req.files.videos.forEach(file => {
-        videoData.push({
-          url: file.path, // Temporary path
-          status: 'processing',
+      console.log("🚀 ~ createDeal ~ Processing videos:", req.files.videos.length);
+      try {
+        req.files.videos.forEach(file => {
+          console.log(`✅ Video received: ${file.originalname}, path: ${file.path}`);
+          videoData.push({
+            url: file.path, // Temporary path
+            status: 'processing',
+          });
         });
-      });
+      } catch (error) {
+        console.error("❌ Error processing videos:", error);
+        return res.status(500).json({ message: "Error processing videos", error: error.message });
+      }
     }
 
     // Create deal
@@ -202,19 +233,28 @@ const createDeal = async (req, res) => {
       isFeatured,
     });
 
+    console.log("🚀 ~ createDeal ~ Saving deal to database");
     await newDeal.save();
+    console.log("✅ Deal saved successfully with ID:", newDeal._id);
     
     // Add video processing jobs to the queue
     if (newDeal.videos && newDeal.videos.length > 0) {
-      newDeal.videos.forEach(video => {
-        if (video.status === 'processing') {
-          videoQueue.add('process-video', {
-            dealId: newDeal._id,
-            videoId: video._id,
-            tempFilePath: video.url,
-          });
-        }
-      });
+      console.log("🚀 ~ createDeal ~ Adding video processing jobs to queue");
+      try {
+        newDeal.videos.forEach(video => {
+          if (video.status === 'processing') {
+            videoQueue.add('process-video', {
+              dealId: newDeal._id,
+              videoId: video._id,
+              tempFilePath: video.url,
+            });
+            console.log(`✅ Video job added to queue: ${video._id}`);
+          }
+        });
+      } catch (error) {
+        console.error("❌ Error adding video jobs to queue:", error);
+        // Continue execution even if queue fails
+      }
     }
 
     // Link to single destination (legacy support)
@@ -245,6 +285,7 @@ const createDeal = async (req, res) => {
       featuredResult = await manageFeaturedDealsLimit(newDeal._id);
     }
 
+    console.log("✅ Deal creation complete, sending response");
     return res
       .status(201)
       .json({ 
@@ -253,7 +294,7 @@ const createDeal = async (req, res) => {
         featuredResult
       });
   } catch (error) {
-    console.error("CreateDeal Error:", error);
+    console.error("❌ CreateDeal Error:", error);
     // Handle mongoose validation errors
     if (error.name === "ValidationError") {
       const errors = Object.values(error.errors).map((err) => err.message);

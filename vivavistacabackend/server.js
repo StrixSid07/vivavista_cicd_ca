@@ -24,6 +24,13 @@ client.connect();
 dotenv.config();
 connectDB();
 
+// Ensure all upload directories exist
+ensureUploadDirectories().then(() => {
+  console.log('✅ All upload directories created successfully');
+}).catch(err => {
+  console.error('❌ Error creating upload directories:', err);
+});
+
 // Define the server URL for image paths
 const SERVER_URL = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5003}`;
 console.log(`🌐 Server URL for images: ${SERVER_URL}`);

@@ -1,0 +1,62 @@
+name: Deploy Canada Site to Hostinger VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Hostinger Canada VPS
+        run: |
+          ssh -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
+            echo "🔗 Logged into VPS"
+
+            cd /var/www
+
+            if [ ! -d vivavista_cicd_ca ]; then
+              echo "🌀 Cloning Canada repo..."
+              git clone https://github.com/StrixSid07/vivavista_cicd_ca.git
+            fi
+
+            cd vivavista_cicd_ca
+            git fetch origin
+            git reset --hard origin/main
+
+            echo "🚀 Backend: vivavistacabackend"
+            cd vivavistacabackend
+            npm install
+            pm2 stop vivavista-backend-ca || true
+            pm2 start server.js --name vivavista-backend-ca
+            pm2 save
+            pm2 startup
+
+            echo "🛠️ Admin Panel: vivavistacaadmin"
+            cd ../vivavistacaadmin
+            npm install
+            npm run build
+            rm -rf /var/www/vivavistacaadmin/*
+            cp -r dist/* /var/www/vivavistacaadmin/
+
+            echo "🌐 Main Site: vivavistaca"
+            cd ../vivavistaca
+            npm install
+            npm run build
+            rm -rf /var/www/vivavistaca/*
+            cp -r dist/* /var/www/vivavistaca/
+
+            echo "✅ Deployment to Canada VPS complete!"
+          EOF

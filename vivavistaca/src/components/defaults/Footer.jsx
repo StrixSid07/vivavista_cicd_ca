@@ -110,7 +110,7 @@ const Footer = () => {
               </span>
               <span className="transition duration-700 ease-in-out hover:text-orange-600">
                 <a
-                  href="mailto:lorem@ipsum.com"
+                  href="mailto:lorem@ipsum.com1"
                   className="block -mt-4 md:w-60 md:mt-0 overflow-hidden text-ellipsis md:whitespace-nowrap"
                 >
                   lorem@ipsum.com

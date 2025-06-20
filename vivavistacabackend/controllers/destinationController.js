@@ -170,27 +170,49 @@ exports.deleteDestinationImage = async (req, res) => {
 exports.addDestination = async (req, res) => {
   const { name, isPopular, places } = req.body;
   try {
+    console.log("📝 Adding new destination:", name);
+    console.log("📁 File received:", req.file ? req.file.originalname : "No file");
+    
     if (!name) {
-      return res.status(400).json({ message: "name is required" });
+      return res.status(400).json({ message: "Name is required" });
     }
+    
     let imageUrl = "";
 
     if (req.file) {
-      // Process and convert image to WebP
-      imageUrl = await processUploadedFile(req.file, 'destination');
+      try {
+        // Process and convert image to WebP
+        console.log("🖼️ Processing image for destination:", name);
+        imageUrl = await processUploadedFile(req.file, 'destinations');
+        console.log("✅ Image processed successfully:", imageUrl);
+      } catch (imageError) {
+        console.error("❌ Error processing image:", imageError);
+        return res.status(500).json({ 
+          message: "Error processing image", 
+          error: imageError.message 
+        });
+      }
     }
 
     const destination = new Destination({
       name,
-      isPopular,
+      isPopular: isPopular === 'true',
       image: imageUrl,
       places: places ? JSON.parse(places) : []
     });
+    
     await destination.save();
-    return res.status(201).json({ message: "created succefully destination" });
+    console.log("✅ Destination created successfully:", destination._id);
+    return res.status(201).json({ 
+      message: "Destination created successfully",
+      destination
+    });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "server error" });
+    console.error("❌ Error creating destination:", error);
+    res.status(500).json({ 
+      message: "Server error while creating destination", 
+      error: error.message 
+    });
   }
 };
 

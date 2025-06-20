@@ -142,22 +142,35 @@ const deleteLocalImage = async (imageUrl) => {
  * @returns {Promise<void>}
  */
 const ensureUploadDirectories = async () => {
-  const components = [
-    'hotel',
-    'deal',
-    'carousel',
-    'autoslider',
-    'destination',
-    'blog',
-    'general',
-    'temp',
-    'dealvideos'
-  ];
-  
-  for (const component of components) {
-    const dir = path.join(process.cwd(), 'uploads', component);
-    await fs.ensureDir(dir);
-    console.log(`✅ Ensured directory exists: ${dir}`);
+  try {
+    // Create main uploads directory
+    await fs.ensureDir(path.join(process.cwd(), 'uploads'));
+    console.log('✅ Main uploads directory created');
+    
+    // Create component-specific directories with proper permissions
+    const components = [
+      'temp', 'destinations', 'hotels', 'deals', 'carousel',
+      'holidays', 'autoslider', 'blogs', 'general'
+    ];
+    
+    for (const component of components) {
+      const dirPath = path.join(process.cwd(), 'uploads', component);
+      await fs.ensureDir(dirPath);
+      
+      // Set directory permissions to 0755 (rwxr-xr-x)
+      try {
+        await fs.chmod(dirPath, 0o755);
+      } catch (err) {
+        console.warn(`⚠️ Could not set permissions for ${dirPath}: ${err.message}`);
+      }
+      
+      console.log(`✅ Created directory: ${dirPath}`);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`❌ Error creating directories: ${error.message}`);
+    throw error;
   }
 };
 

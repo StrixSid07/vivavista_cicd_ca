@@ -60,8 +60,8 @@ const corsOptions = {
 };
 
 const app = express();
-// app.use(cors(corsOptions));
-app.use(cors());
+app.use(cors(corsOptions)); // Use the specific CORS configuration
+// app.use(cors()); // Comment out the generic CORS configuration
 app.use(express.json());
 
 // Configure Helmet with relaxed image source policy
@@ -90,8 +90,8 @@ app.use(limiter);
 // Serve static files with proper CORS headers - allow access from any origin
 app.use("/uploads", (req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.header("Cross-Origin-Resource-Policy", "cross-origin");
   res.header("Cross-Origin-Embedder-Policy", "credentialless");
   next();

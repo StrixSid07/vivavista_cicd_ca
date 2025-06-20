@@ -153,6 +153,9 @@ app.get('/test-image', (req, res) => {
   res.sendFile(path.join(__dirname, 'test-image.html'));
 });
 
+app.get('/test', (req, res) => {
+  res.send('Hello World');
+});
 // ✅ Initialize Swagger Docs
 swaggerDocs(app);
 

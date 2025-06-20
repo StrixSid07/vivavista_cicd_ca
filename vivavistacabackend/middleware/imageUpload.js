@@ -45,7 +45,7 @@ const localStorage = multer.diskStorage({
 // ✅ Multer upload configuration
 const upload = multer({
   storage: localStorage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
   fileFilter: (req, file, cb) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
     if (!allowedTypes.includes(file.mimetype)) {

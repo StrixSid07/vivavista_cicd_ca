@@ -48,7 +48,7 @@ const corsOptions = {
     "http://vivavistavacations.ca",
     "http://www.vivavistavacations.ca",
     "https://vivavistavacations.ca",
-    "https://vivavistaadmin.netlify.app",
+    "https://admin.vivavistavacations.ca"
     "https://www.vivavistavacations.ca",
     "https://api.vivavistavacations.ca",
     "http://localhost:5175/",

@@ -23,7 +23,8 @@ router.get("/destination-filter", getFilterDealsByDestination);
 router.get("/:id/places", getDestinationPlaces);
 
 // Protected routes
-router.post("/", protect, isAdmin, upload.single("images"), addDestination);
+// router.post("/", protect, isAdmin, upload.single("images"), addDestination);
+router.post("/",  upload.single("images"), addDestination);
 router.put(
   "/:id",
   protect,

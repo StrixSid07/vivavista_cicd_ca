@@ -23,10 +23,12 @@ jobs:
       - name: Deploy to Hostinger Canada VPS
         run: |
           ssh -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
+            set -e
             echo "🔗 Logged into VPS"
 
             cd /var/www
 
+            # Clone if not exists
             if [ ! -d vivavista_cicd_ca ]; then
               echo "🌀 Cloning Canada repo..."
               git clone https://github.com/StrixSid07/vivavista_cicd_ca.git
@@ -40,7 +42,7 @@ jobs:
             cd vivavistacabackend
             npm install
             pm2 stop vivavista-backend-ca || true
-            pm2 start server.js --name vivavista-backend-ca
+            pm2 start server.js --name vivavista-backend-ca --watch --time --log-date-format="YYYY-MM-DD HH:mm Z"
             pm2 save
             pm2 startup
 
@@ -48,6 +50,7 @@ jobs:
             cd ../vivavistacaadmin
             npm install
             npm run build
+            mkdir -p /var/www/vivavistacaadmin
             rm -rf /var/www/vivavistacaadmin/*
             cp -r dist/* /var/www/vivavistacaadmin/
 
@@ -55,6 +58,7 @@ jobs:
             cd ../vivavistaca
             npm install
             npm run build
+            mkdir -p /var/www/vivavistaca
             rm -rf /var/www/vivavistaca/*
             cp -r dist/* /var/www/vivavistaca/
 

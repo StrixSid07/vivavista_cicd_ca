@@ -67,7 +67,7 @@ const Footer = () => {
           <p className="mb-4 flex flex-wrap">Your Journey, Our Expertise.</p>
           <div className="flex justify-center flex-col items-start gap-2 mb-4">
             <a
-              href="https://wa.me/442037805023" // Replace with your WhatsApp link
+              href="https://wa.me/18000000000" // Updated WhatsApp link for Canada
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center w-52 justify-between gap-1 bg-green-600 text-white font-medium px-3 py-3 rounded-lg shadow-md hover:bg-teal-700 transition-all duration-300"
@@ -100,7 +100,7 @@ const Footer = () => {
                   <FaPhoneAlt size={18} />
                 </span>
                 <span className="transition duration-700 ease-in-out hover:text-orange-600">
-                  <a href="tel:+020 3780 5023"> 020 3780 5023</a>
+                  <a href="tel:+18000000000"> 1 8** *** ****</a>
                 </span>{" "}
               </div>
             </li>
@@ -110,10 +110,10 @@ const Footer = () => {
               </span>
               <span className="transition duration-700 ease-in-out hover:text-orange-600">
                 <a
-                  href="mailto:admin@vivavistavacations.co.uk"
+                  href="mailto:lorem@ipsum.com"
                   className="block -mt-4 md:w-60 md:mt-0 overflow-hidden text-ellipsis md:whitespace-nowrap"
                 >
-                  admin@vivavistavacations.co.uk
+                  lorem@ipsum.com
                 </a>
               </span>
             </li>
@@ -129,7 +129,7 @@ const Footer = () => {
                   target="_blank"
                   className="transition-all ease-in-out group-hover:text-orange-600"
                 >
-                  01, 195-197 Wood Street, London, England, E17 3NU
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit
                 </a>
               </div>
             </li>
@@ -167,7 +167,7 @@ const Footer = () => {
             </div>
             <div className=" flex flex-col justify-center items-center space-y-2 group mt-2">
               <a
-                href="https://wa.me/442037805023"
+                href="https://wa.me/18000000000"
                 target="_new"
                 className="transition-all ease-out duration-500 group-hover:text-green-700"
               >
@@ -297,7 +297,7 @@ const Footer = () => {
           </div>
           <div className=" flex flex-col justify-center items-center space-y-2 group mt-2">
             <a
-              href="https://wa.me/442037805023"
+              href="https://wa.me/18000000000"
               className="transition-all ease-out duration-500 group-hover:text-green-700"
             >
               <FaWhatsapp size={24} />

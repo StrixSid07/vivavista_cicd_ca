@@ -269,13 +269,13 @@ const Navbar = () => {
               )}
             </div>
             <a
-              href="tel:+02037805023"
+              href="tel:+18000000000"
               className="flex items-center p-2 group bg-green-500 text-white rounded-xl hover:bg-teal-500 space-x-2 transition-colors duration-300 ease-in-out hover:text-orange-500 text-lg "
             >
               <div className="p-1 bg-white rounded-full text-orange-500 transition-colors duration-300 ease-in-out group-hover:text-blue-500">
                 <FaPhoneAlt />
               </div>
-              <span className="hidden sm:inline">0203 780 5023</span>
+              <span className="hidden sm:inline">1 8** *** ****</span>
             </a>
             <motion.div
               onClick={toggleSidebar}
@@ -554,13 +554,13 @@ const Navbar = () => {
                 )}
               </div>
               <a
-                href="tel:+02037805023"
+                href="tel:+18000000000"
                 className="flex items-center p-2 group bg-green-500 text-white rounded-xl hover:bg-teal-500 space-x-2 transition-colors duration-300 ease-in-out hover:text-orange-500 text-lg "
               >
                 <div className="p-2 bg-white rounded-full text-orange-500 transition-colors duration-300 ease-in-out group-hover:text-blue-500">
                   <FaPhoneAlt />
                 </div>
-                <span className="hidden sm:inline">0203 780 5023</span>
+                <span className="hidden sm:inline">1 8** *** ****</span>
               </a>
             </div>
           </div>

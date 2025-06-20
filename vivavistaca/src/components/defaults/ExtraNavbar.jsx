@@ -30,7 +30,7 @@ const ExtraNavbar = () => {
             className="flex items-center space-x-2 transition-colors duration-300 ease-in-out hover:text-deep-orange-700 text-lg"
           >
             <FaPhoneAlt />
-            <span className="hidden sm:inline">{region === "USA" ? "1 8** *** ****" : region === "Canada" ? "18** *** ****" : "0203 780 5023"}</span>
+            <span className="hidden sm:inline">{region === "USA" ? "1 8** *** ****" : region === "Canada" ? "1 8** *** ****" : "0203 780 5023"}</span>
           </a>
           <a
             href="mailto:admin@vivavistavacations.ca"

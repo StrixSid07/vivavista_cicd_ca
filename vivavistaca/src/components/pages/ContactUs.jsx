@@ -148,8 +148,7 @@ const ContactUs = () => {
                   Address
                 </h1>
                 <p className="text-base flex justify-center text-left items-center gap-4 md:text-lg lg:text-xl">
-                  <FaLocationDot className="text-red-500" size={24} /> 01,
-                  195-197 Wood Street, London, England, E17 3NU
+                  <FaLocationDot className="text-red-500" size={24} /> Lorem ipsum dolor sit amet, consectetur adipiscing elit
                 </p>
               </div>
               {/* Contact Info */}
@@ -159,7 +158,7 @@ const ContactUs = () => {
                 </h1>
                 <p className="text-base flex items-center justify-start gap-4 md:text-lg lg:text-xl transition duration-700 ease-in-out hover:text-deep-orange-500">
                   <FaPhoneAlt className="text-green-500" size={24} />{" "}
-                  <a href="tel:+0203 780 5023">+0203 780 5023</a>
+                  <a href="tel:+18000000000">1 8** *** ****</a>
                 </p>
               </div>
               <div className="mb-6">
@@ -168,8 +167,8 @@ const ContactUs = () => {
                 </h1>
                 <p className="text-base flex items-center justify-start gap-4 md:text-lg lg:text-xl transition duration-700 ease-in-out hover:text-deep-orange-500">
                   <FaEnvelope className="text-blue-600" size={24} />
-                  <a href="mailto:support@gmail.com">
-                    admin@vivavistavacations.co.uk
+                  <a href="mailto:lorem@ipsum.com">
+                    lorem@ipsum.com
                   </a>
                 </p>
               </div>

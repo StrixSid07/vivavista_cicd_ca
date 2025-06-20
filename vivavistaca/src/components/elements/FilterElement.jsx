@@ -594,7 +594,7 @@ useEffect(() => {
             </Typography>
             <div>
               <a
-                href="tel:+02045059777"
+                href="tel:+18000000000"
                 className="flex items-center justify-center gap-2"
               >
                 <FaPhoneAlt className="text-green-500" />
@@ -602,7 +602,7 @@ useEffect(() => {
                   variant="large"
                   className="font-bold text-black customfontstitle"
                 >
-                  0204 505 9777
+                  1 8** *** ****
                 </Typography>
               </a>
             </div>

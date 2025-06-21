@@ -7,10 +7,10 @@ import { useInView } from "react-intersection-observer";
 import { bg6 } from "../../assets";
 
 const lookingOptions = [
-  {
-    icon: FaMoneyBillWave,
-    title: "Low Deposits Spread The Cost",
-  },
+  // {
+  //   icon: FaMoneyBillWave,
+  //   title: "Low Deposits Spread The Cost",
+  // },
   {
     icon: FaShieldAlt,
     title: "100% Trusted Travel Agency",

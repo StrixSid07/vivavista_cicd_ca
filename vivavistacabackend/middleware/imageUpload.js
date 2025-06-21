@@ -47,16 +47,25 @@ const upload = multer({
   storage: localStorage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
   fileFilter: (req, file, cb) => {
+    console.log("📦 Uploading file:", {
+      originalName: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size, // Might not be available here, but helpful to try
+    });
+
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
     if (!allowedTypes.includes(file.mimetype)) {
+      console.error("❌ Invalid file type:", file.mimetype);
       return cb(
         new Error("Only JPEG, PNG, and JPG formats are allowed"),
         false
       );
     }
+
+    console.log("✅ File accepted:", file.originalname);
     cb(null, true);
   },
-});
+}); 
 
 /**
  * Process uploaded file and convert to WebP

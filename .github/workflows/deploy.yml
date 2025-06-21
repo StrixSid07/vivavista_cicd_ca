@@ -28,7 +28,7 @@ jobs:
 
             cd /var/www
 
-            # Clone if not exists
+            # Clone Canada repo if not exists
             if [ ! -d vivavista_cicd_ca ]; then
               echo "🌀 Cloning Canada repo..."
               git clone https://github.com/StrixSid07/vivavista_cicd_ca.git
@@ -49,18 +49,22 @@ jobs:
             echo "🛠️ Admin Panel: vivavistacaadmin"
             cd ../vivavistacaadmin
             npm install
-            npm run build
+            npm run build || { echo "❌ Admin panel build failed"; exit 1; }
+
             mkdir -p /var/www/vivavistacaadmin
             rm -rf /var/www/vivavistacaadmin/*
             cp -r dist/* /var/www/vivavistacaadmin/
+            echo "✅ Admin panel deployed"
 
             echo "🌐 Main Site: vivavistaca"
             cd ../vivavistaca
             npm install
-            npm run build
+            npm run build || { echo "❌ Main site build failed"; exit 1; }
+
             mkdir -p /var/www/vivavistaca
             rm -rf /var/www/vivavistaca/*
             cp -r dist/* /var/www/vivavistaca/
+            echo "✅ Main site deployed"
 
             echo "✅ Deployment to Canada VPS complete!"
           EOF

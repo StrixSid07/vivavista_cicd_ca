@@ -113,7 +113,7 @@ const Footer = () => {
                   href="mailto:lorem@ipsum.com123"
                   className="block -mt-4 md:w-60 md:mt-0 overflow-hidden text-ellipsis md:whitespace-nowrap"
                 >
-                  lorem@ipsum.com
+                  lorem@ipsum.com123
                 </a>
               </span>
             </li>

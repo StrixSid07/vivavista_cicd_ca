@@ -107,9 +107,9 @@ const Section = ({ title, items, icon }) => {
       </h2>
       {items?.length > 0 ? (
         <>
-          <ul className="list-disc list-outside pl-5 text-gray-700 space-y-1 text-base">
+          <ul className="list-disc list-inside text-gray-700 space-y-1 text-base">
             {visibleItems.map((item, index) => (
-              <li key={index} className="pl-1">{item}</li>
+              <li key={index}>{item}</li>
             ))}
           </ul>
           {shouldShowToggle && (

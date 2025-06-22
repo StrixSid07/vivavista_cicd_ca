@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { Hotel } from "lucide-react";
 import {
@@ -16,6 +16,25 @@ const AccommodationCard = ({ hotel }) => {
 
   const openDrawer = () => setDrawerOpen(true);
   const closeDrawer = () => setDrawerOpen(false);
+
+  // Disable body scroll when drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      // Disable body scroll
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = '15px'; // Prevent layout shift
+    } else {
+      // Enable body scroll
+      document.body.style.overflow = 'unset';
+      document.body.style.paddingRight = '0px';
+    }
+
+    // Cleanup function to ensure scroll is re-enabled
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.paddingRight = '0px';
+    };
+  }, [drawerOpen]);
 
   // Format all hotel images
   const formattedImages = hotel.images || [];
@@ -83,16 +102,15 @@ const AccommodationCard = ({ hotel }) => {
         placement="right"
         open={drawerOpen}
         onClose={closeDrawer}
-        // override the backdrop to cover the entire screen
         overlayProps={{
-          className:
-            "fixed inset-0 z-[9998] bg-black bg-opacity-60 backdrop-blur-sm",
+          className: "fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm",
+          style: { zIndex: 999998 }
         }}
-        // ensure the drawer panel itself stacks above that
-        className="fixed top-0 right-0 h-full z-[9999] p-5 pt-28"
+        className="p-5 pt-28"
+        style={{ zIndex: 999999 }}
         size={1000}
         dismiss={{ outsidePress: true, escapeKey: true }}
-        overlay
+        overlay={true}
       >
         <div className="overflow-y-auto h-full pr-2">
           <div className="mb-6 flex items-center justify-between">

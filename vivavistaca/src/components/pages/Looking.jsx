@@ -1,5 +1,5 @@
 import React from "react";
-import { FaMoneyBillWave, FaShieldAlt, FaHeadset } from "react-icons/fa";
+import { FaMoneyBillWave, FaShieldAlt, FaHeadset, FaHandshake, FaSuitcase } from "react-icons/fa";
 import { MdOutlineVerified } from "react-icons/md";
 import { PiCalendarStarFill } from "react-icons/pi";
 import { motion, useAnimation } from "framer-motion";
@@ -26,6 +26,14 @@ const lookingOptions = [
   {
     icon: FaHeadset,
     title: "24x7 Support Provided",
+  },
+  {
+    icon: FaSuitcase,
+    title: "Bespoke Holiday Deals",
+  },
+  {
+    icon: FaHandshake,
+    title: "Financial Protection",
   },
 ];
 

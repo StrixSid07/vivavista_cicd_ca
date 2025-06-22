@@ -1,7 +1,7 @@
 import { FaHeadset, FaTag } from "react-icons/fa";
 import { HiMiniShieldCheck } from "react-icons/hi2";
 import { GiTakeMyMoney } from "react-icons/gi";
-import { aboutus } from "../../assets"; // assuming you have an asset for the image
+import { Canada } from "../../assets"; // Using Canada.jpg image
 import { Dialog, DialogBody } from "@material-tailwind/react";
 import ConciergeFormCard from "../elements/ConciergeFormCard";
 import { useState, useEffect } from "react";
@@ -29,7 +29,7 @@ const AboutUs = () => {
       <section
         className="relative bg-cover bg-center h-80 flex items-center justify-center"
         style={{
-          backgroundImage: `url(${aboutus})`,
+          backgroundImage: `url(${Canada})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -109,7 +109,7 @@ const AboutUs = () => {
               <div className="text-5xl text-deep-orange-600 mb-4">
                 <HiMiniShieldCheck />
               </div>
-              <h3 className="text-xl font-semibold mb-2">
+              <h3 className="text-xl font-semibold mb-2 text-center">
                 Unwavering Commitment
               </h3>
               <p className="text-center text-gray-600">

@@ -19,7 +19,7 @@ const faqs = [
   {
     question: "How to Confirm Your Holiday Booking with Viva Vista Vacations?",
     answer:
-      "Once your holiday is successfully booked with Viva Vista Vacations, you will receive a booking confirmation email at the address provided during booking. Our Sales team will also follow up with a call to ensure everything is in order. The confirmation email will include your booking reference number and a summary of your holiday details. We recommend reviewing it carefully and contacting us immediately if there are any discrepancies. If you haven’t received your booking confirmation within 24 to 48 hours, please log into the ‘Manage My Booking’ section on our website and check your junk or spam folder.",
+      "Once your holiday is successfully booked with Viva Vista Vacations, you will receive a booking confirmation email at the address provided during booking. Our Sales team will also follow up with a call to ensure everything is in order. The confirmation email will include your booking reference number and a summary of your holiday details. We recommend reviewing it carefully and contacting us immediately if there are any discrepancies. If you haven't received your booking confirmation within 24 to 48 hours, please log into the 'Manage My Booking' section on our website and check your junk or spam folder.",
     contactNumber: "",
     lists: [],
     linktitle: ["Manage My Booking"],
@@ -63,8 +63,8 @@ const faqs = [
   {
     question: "When and Where Will We Receive Our Tickets?",
     answer:
-      "Your travel documents are typically emailed or dispatched 7 to 10 days before departure. If your booking was confirmed within 14 days of travel, you may receive them up to 48 hours before departure. If you need a copy of your confirmation, you can retrieve all your documents from the ‘Manage My Booking’ section on our website. If you haven’t received your tickets at least 3 days before departure, please contact us with your booking reference for assistance.",
-    contactNumber: "02037805023",
+      "Your travel documents are typically emailed or dispatched 7 to 10 days before departure. If your booking was confirmed within 14 days of travel, you may receive them up to 48 hours before departure. If you need a copy of your confirmation, you can retrieve all your documents from the 'Manage My Booking' section on our website. If you haven't received your tickets at least 3 days before departure, please contact us with your booking reference for assistance.",
+    contactNumber: "1 8** *** ****",
     lists: [],
     linktitle: ["Manage My Booking"],
     links: ["/privacy"],
@@ -97,8 +97,8 @@ const faqs = [
     question:
       "What Is My Baggage Allowance, and How Can I Modify It After Booking?",
     answer:
-      "Baggage allowances vary based on the airline, flight type, and whether you’ve booked a package holiday or a flight-only deal. Most airlines allow an increase for an additional fee. If you need to upgrade your hold luggage, please contact our Amendments and Cancellations team for assistance.",
-    contactNumber: "02037805023",
+      "Baggage allowances vary based on the airline, flight type, and whether you've booked a package holiday or a flight-only deal. Most airlines allow an increase for an additional fee. If you need to upgrade your hold luggage, please contact our Amendments and Cancellations team for assistance.",
+    contactNumber: "1 8** *** ****",
     lists: [],
     links: [],
   },
@@ -129,8 +129,8 @@ const faqs = [
   {
     question: "Amendments or Cancellations to Your Booking",
     answer:
-      "If you need to make any changes to your booking, please contact our Customer Service team at 02037805023, or reach us via email at admin@vivavistavacations.co.uk. Cancellations are subject to the supplier’s terms and conditions, and additional charges may apply.",
-    contactNumber: "02037805023",
+      "If you need to make any changes to your booking, please contact our Customer Service team at 1 8** *** ****, or reach us via email at admin@vivavistavacations.ca. Cancellations are subject to the supplier's terms and conditions, and additional charges may apply.",
+    contactNumber: "1 8** *** ****",
     lists: [],
     links: [],
   },

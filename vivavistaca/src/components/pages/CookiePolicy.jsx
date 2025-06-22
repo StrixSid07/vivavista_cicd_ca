@@ -10,7 +10,7 @@ const CookiePolicy = () => {
       <section className="mb-6">
         <p className="mb-4">
           Viva Vista Vacations uses small text files called cookies, which are
-          stored on your device’s hard drive. These cookies are placed by our
+          stored on your device's hard drive. These cookies are placed by our
           web server to identify the device used to visit the Viva Vista
           Vacations website. The stored cookies help capture useful features
           based on your recent searches and preferences, allowing us to
@@ -172,10 +172,10 @@ const CookiePolicy = () => {
           If you have any questions or comments regarding our Cookie Policy,
           feel free to reach us at{" "}
           <a
-            href="mailto:admin@vivavistavacations.co.uk"
+            href="mailto:admin@vivavistavacations.ca"
             className="text-deep-orange-600 underline"
           >
-            admin@vivavistavacations.co.uk
+            admin@vivavistavacations.ca
           </a>
           .
         </p>

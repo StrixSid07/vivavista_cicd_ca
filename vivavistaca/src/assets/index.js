@@ -29,6 +29,8 @@ import holidays from "./bg/Holidays.jpg";
 import packages from "./bg/Packages.jpg";
 import topdeals from "./bg/Topdeals.jpg";
 import blog from "./bg/Blog.jpg";
+import filterformat from "./bg/filterformat.webp";
+import Canada from "./bg/Canada.jpg";
 export {
   logo,
   homebg,
@@ -61,4 +63,6 @@ export {
   packages,
   topdeals,
   blog,
+  filterformat,
+  Canada,
 };

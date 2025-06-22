@@ -118,10 +118,10 @@ const PrivacyPolicy = () => {
           at any time. We may contact you with special offers and brochures. To
           stop receiving marketing messages, email us at{" "}
           <a
-            href="mailto:admin@vivavistavacations.co.uk"
+            href="mailto:admin@vivavistavacations.ca"
             className="text-deep-orange-600 underline"
           >
-            admin@vivavistavacations.co.uk
+            admin@vivavistavacations.ca
           </a>
           .
         </p>
@@ -180,16 +180,16 @@ const PrivacyPolicy = () => {
         <p className="mt-2">
           For a copy of your stored data, contact us at{" "}
           <a
-            href="mailto:admin@vivavistavacations.co.uk"
+            href="mailto:admin@vivavistavacations.ca"
             className="text-deep-orange-600 underline"
           >
-            admin@vivavistavacations.co.uk
+            admin@vivavistavacations.ca
           </a>{" "}
           with proof of identification.
         </p>
         <p>
           If you believe your data rights have been violated, you may contact
-          the Information Commissioner’s Office (ICO) at{" "}
+          the Information Commissioner's Office (ICO) at{" "}
           <a
             href="https://www.ico.org.uk"
             target="_blank"
@@ -258,10 +258,10 @@ const PrivacyPolicy = () => {
         <p className="mb-2">
           <strong>Email:</strong>{" "}
           <a
-            href="mailto:admin@vivavistavacations.co.uk"
+            href="mailto:admin@vivavistavacations.ca"
             className="text-deep-orange-600 underline"
           >
-            admin@vivavistavacations.co.uk
+            admin@vivavistavacations.ca
           </a>
         </p>
         <p>

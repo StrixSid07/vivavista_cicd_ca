@@ -43,7 +43,7 @@ export default function GroupBookingForm() {
   React.useEffect(() => {
     if (countries.length) {
       const defaultIndex = countries.findIndex(
-        (c) => c.name === "United Kingdom"
+        (c) => c.name === "Canada"
       );
       if (defaultIndex !== -1) {
         setCountry(defaultIndex);

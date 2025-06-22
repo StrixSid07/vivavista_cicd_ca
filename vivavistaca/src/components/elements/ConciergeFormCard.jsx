@@ -46,7 +46,7 @@ const ConciergeFormCard = ({
   React.useEffect(() => {
     if (countries.length) {
       const defaultIndex = countries.findIndex(
-        (c) => c.name === "United Kingdom"
+        (c) => c.name === "Canada"
       );
       if (defaultIndex !== -1) {
         setCountry(defaultIndex);
@@ -175,15 +175,15 @@ const ConciergeFormCard = ({
       {/* Phone + WhatsApp */}
       <div className="flex flex-col md:flex-row gap-3">
         <a
-          href="tel:+02037805023"
+          href="tel:+18000000000"
           className="flex-1 bg-white border border-blue-500 text-blue-600 font-semibold rounded-lg px-2 py-2 text-center hover:bg-blue-50 transition customfontstitle"
         >
           <span className="flex justify-center items-center gap-2">
-            <FaPhoneAlt /> 0203 780 5023
+            <FaPhoneAlt /> 1 8** *** ****
           </span>
         </a>
         <a
-          href="https://wa.me/442037805023"
+          href="https://wa.me/18000000000"
           target="_blank"
           rel="noopener noreferrer"
           className="flex-1 bg-green-500 text-white font-semibold rounded-lg px-2 py-2 text-center hover:bg-green-600 transition"

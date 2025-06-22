@@ -91,10 +91,10 @@ export default function FooterNew() {
                   />
                   {/* email link stays <a> */}
                   <a
-                    href="mailto:admin@vivavistavacations.co.uk"
+                    href="mailto:admin@vivavistavacations.ca"
                     className="text-white hover:text-orange-600 break-all"
                   >
-                    admin@vivavistavacations.co.uk
+                    admin@vivavistavacations.ca
                   </a>
                 </li>
 
@@ -173,7 +173,7 @@ export default function FooterNew() {
           >
             &copy; {currentYear}{" "}
             <a
-              href="https://www.vivavistavacations.co.uk/"
+              href="https://www.vivavistavacations.ca/"
               className="hover:text-orange-500 transition duration-700 text-orange-700"
             >
               Viva Vista Vacations
@@ -217,16 +217,16 @@ export default function FooterNew() {
           </div>
         </div>
         <div className="flex flex-col justify-center items-center text-center">
-          <p>
-            The Foreign, Commonwealth & Development Office (FCDO) provides the
-            latest travel advice by country, including safety and security,
-            travel warnings, and health. For the latest FCDO advice, visit
+          <p className="px-4">
+            The Government of Canada offers comprehensive, up-to-date travel advice, covering important information on safety, entry requirements, health, and travel warnings tailored to each destination. For Canadians planning international travel, this resource provides crucial updates to help prepare for safe and informed journeys. Given the dynamic nature of global conditions, travelers are encouraged to consult the Government of Canada's travel advisories before departure and regularly during their travels to stay informed of any changes.
           </p>
           <a
-            href="www.travelaware.campaign.gov.uk"
+            href="https://travel.gc.ca/travelling/advisories"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-blue-600 transition duration-700 hover:text-blue-400"
           >
-            www.travelaware.campaign.gov.uk
+            travel.gc.ca/travelling/advisories
           </a>
         </div>
       </div>

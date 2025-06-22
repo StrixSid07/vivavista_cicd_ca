@@ -326,18 +326,7 @@ export const ManageDeals = () => {
       LowDeposite: "",
       images: [],
       videos: [],
-      prices: deal.prices ? deal.prices.map((price) => ({
-        ...price,
-        airport: Array.isArray(price.airport)
-          ? price.airport.map((a) => (typeof a === "object" ? a._id : a))
-          : [],
-        startdate: price.startdate ? price.startdate.split("T")[0] : "", // Convert to YYYY-MM-DD
-        enddate: price.enddate ? price.enddate.split("T")[0] : "", // Convert to YYYY-MM-DD
-        hotel:
-          price.hotel && typeof price.hotel === "object"
-            ? price.hotel._id
-            : price.hotel,
-      })) : [
+      prices: [
         {
           country: "",
           priceswitch: false,
@@ -398,7 +387,7 @@ export const ManageDeals = () => {
             LowDeposite: deal.LowDeposite || "",
             images: deal.images || [],
             videos: deal.videos || [],
-            prices: deal.prices ? deal.prices.map((price) => ({
+            prices: deal.prices && deal.prices.length > 0 ? deal.prices.map((price) => ({
               ...price,
               airport: Array.isArray(price.airport)
                 ? price.airport.map((a) => (typeof a === "object" ? a._id : a))

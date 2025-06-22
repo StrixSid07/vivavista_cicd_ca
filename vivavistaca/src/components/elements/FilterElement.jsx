@@ -279,9 +279,16 @@ useEffect(() => {
     }
     
     // Find all trips for this airport and update price
-    const trips = prices.filter((p) =>
-      p.airport.some((a) => a._id === value)
-    );
+    const trips = prices.filter((p) => {
+      // Handle different airport data structures
+      if (Array.isArray(p.airport)) {
+        return p.airport.some((a) => a._id === value);
+      } else if (typeof p.airport === 'object' && p.airport) {
+        return p.airport._id === value;
+      } else {
+        return p.airport === value;
+      }
+    });
 
     if (trips.length > 0) {
       // Find the cheapest price for this airport

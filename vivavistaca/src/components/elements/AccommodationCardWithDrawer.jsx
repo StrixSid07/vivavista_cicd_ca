@@ -38,17 +38,17 @@ const AccommodationCard = ({ hotel }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-lg flex flex-col md:w-80 w-64 mr-4 shrink-0 customfontstitle">
+    <div className="bg-white rounded-2xl p-5 shadow-lg flex flex-col w-80 h-64 mr-4 shrink-0 customfontstitle">
       {/* Hotel Name */}
       <div className="flex items-center gap-3 mb-3">
         <Hotel className="w-5 h-5 text-blue-500" />
-        <h2 className="text-lg font-semibold text-gray-800">
+        <h2 className="text-lg font-semibold text-gray-800 truncate">
           {hotel.name || "Hotel Name"}
         </h2>
       </div>
 
       {/* Short Description */}
-      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+      <p className="text-sm text-gray-600 mb-4 leading-relaxed line-clamp-3 flex-grow">
         {hotel.about
           ? hotel.about.substring(0, 150) + "..."
           : "No description available."}
@@ -73,9 +73,9 @@ const AccommodationCard = ({ hotel }) => {
       <Button
         size="sm"
         onClick={openDrawer}
-        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-indigo-600 hover:to-blue-500 customfontstitle"
+        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-indigo-600 hover:to-blue-500 customfontstitle mt-auto"
       >
-        View More
+        VIEW MORE
       </Button>
 
       {/* Drawer */}

@@ -27,17 +27,13 @@ export function ManageAirports() {
   const [deleteInProgress, setDeleteInProgress] = useState(false);
 
   const categories = [
-    "London",
-    "Midlands",
-    "North East",
-    "North West",
-    "Scotland",
-    "Northern Ireland",
-    "South",
-    "West Country & Wales",
-    "Yorkshire",
-    "East Anglia",
-    "Isle of Man",
+    "British Columbia",
+    "Alberta",
+    "Saskatchewan",
+    "Manitoba",
+    "Ontario",
+    "Quebec",
+    "Nova Scotia",
   ];
 
   // State for delete confirmation dialog

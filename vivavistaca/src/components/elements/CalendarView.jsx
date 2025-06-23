@@ -65,44 +65,103 @@ const CalendarView = ({
     console.log("this is all finaldata", finaldata);
     
     // Safely filter by priceswitch, ensuring price object has the expected structure
-    const finaltwo = finaldata.filter((d) => d.price && d.price.priceswitch === false);
-    
+    const finaltwo = finaldata.filter((d) => {
+      // Check if price exists and has the expected structure
+      if (!d.price) {
+        console.log("No price object found for:", d);
+        return false;
+      }
+      
+      // Handle different price object structures
+      if (typeof d.price === 'object') {
+        // If price is an object, check the priceswitch property
+        const priceswitch = d.price.priceswitch;
+        console.log("Price object:", d.price, "priceswitch:", priceswitch);
+        return priceswitch === false;
+      } else {
+        // If price is just a number, include it (assume no priceswitch means it's valid)
+        console.log("Price is a number:", d.price);
+        return true;
+      }
+    });
+
     console.log("this is final two", finaltwo);
     
     const finalThree = finaltwo.map((d) => {
       // Destructure the price object and remove the 'priceswitch' field
       const { price, ...rest } = d;
+      
+      let finalPrice;
+      if (typeof price === 'object' && price !== null) {
+        // If price is an object, extract the value
+        finalPrice = price.value || price.price || 0;
+        console.log("Extracting price from object:", price, "final price:", finalPrice);
+      } else {
+        // If price is already a number, use it directly
+        finalPrice = price;
+        console.log("Using price directly:", finalPrice);
+      }
+      
       return {
         ...rest, // Keep all other properties (e.g., airport, date)
-        price: price.value, // Keep only the price value
+        price: finalPrice, // Use the extracted price value
       };
     });
 
+    console.log("finalThree result:", finalThree);
     return finalThree; // Compare by _id
   }, [departureDates, departureAirports, priceMap, selectedAirport, pricesid]);
 
   console.log("parsh data", parsedDates);
-  const [currentMonth, setCurrentMonth] = useState(
-    parsedDates[0]?.date.startOf("month") || dayjs().startOf("month")
-  );
+  
+  const [currentMonth, setCurrentMonth] = useState(dayjs().startOf("month"));
+  
+  // Update currentMonth when parsedDates changes to show the first month with data
+  useEffect(() => {
+    if (!Array.isArray(parsedDates) || parsedDates.length === 0) return;
+    
+    // Find the first date that has valid data
+    const firstValidDate = parsedDates.find(d => d && d.date && d.price);
+    if (firstValidDate) {
+      const newMonth = firstValidDate.date.startOf("month");
+      console.log("Setting month to:", newMonth.format("MMMM YYYY"));
+      setCurrentMonth(newMonth);
+    }
+  }, [parsedDates]);
 
   const dateMap = useMemo(() => {
     const map = {};
     
-    if (!Array.isArray(parsedDates)) return map;
+    console.log("Creating dateMap from parsedDates:", parsedDates);
     
-    parsedDates.forEach(({ date, airport, price }) => {
-      if (!date) return;
+    if (!Array.isArray(parsedDates)) {
+      console.log("parsedDates is not an array:", parsedDates);
+      return map;
+    }
+    
+    parsedDates.forEach(({ date, airport, price }, index) => {
+      console.log(`Processing item ${index}:`, { date, airport, price });
+      
+      if (!date) {
+        console.log("No date found for item:", { date, airport, price });
+        return;
+      }
       
       const key = date.format("DD/MM/YYYY");
+      console.log("Date key:", key);
+      
       if (!map[key]) map[key] = [];
       
       // Only add entries with valid airport and price
       if (airport && price !== undefined) {
         map[key].push({ airport, price });
+        console.log(`Added to dateMap[${key}]:`, { airport, price });
+      } else {
+        console.log("Skipping item due to missing airport or price:", { airport, price });
       }
     });
     
+    console.log("Final dateMap:", map);
     return map;
   }, [parsedDates]);
 

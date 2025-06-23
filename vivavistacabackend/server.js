@@ -157,7 +157,7 @@ app.get('/test-image', (req, res) => {
 });
 
 app.get('/test', (req, res) => {
-  res.send('Hello World');
+  res.send('Hello World Test');
 });
 // ✅ Initialize Swagger Docs
 swaggerDocs(app);
@@ -195,5 +195,5 @@ if (isLocal) {
 }
 
 // ✅ Start Cron Job for Hotel Ratings Update
-// const updateHotelRatings = require("./cron/hotelUpdater");
-// updateHotelRatings();
+const updateHotelRatings = require("./cron/hotelUpdater");
+updateHotelRatings();

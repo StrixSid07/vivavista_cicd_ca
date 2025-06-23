@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
-import { Hotel } from "lucide-react";
+import { Hotel, MapPin, Utensils } from "lucide-react";
 import {
   Drawer,
   Button,
@@ -66,12 +66,28 @@ const AccommodationCard = ({ hotel }) => {
         </h2>
       </div>
 
-      {/* Short Description */}
-      <p className="text-sm text-gray-600 mb-4 leading-relaxed line-clamp-3 flex-grow">
-        {hotel.about
-          ? hotel.about.substring(0, 150) + "..."
-          : "No description available."}
-      </p>
+      {/* Destination */}
+      {hotel.destination?.name && (
+        <div className="flex items-center gap-2 mb-3">
+          <MapPin className="w-4 h-4 text-red-500" />
+          <p className="text-sm text-gray-600 truncate">
+            {hotel.destination.name}
+          </p>
+        </div>
+      )}
+
+      {/* Board Basis */}
+      {hotel.boardBasis?.name && (
+        <div className="flex items-center gap-2 mb-3">
+          <Utensils className="w-4 h-4 text-green-500" />
+          <p className="text-sm text-gray-600 truncate">
+            {hotel.boardBasis.name}
+          </p>
+        </div>
+      )}
+
+      {/* Spacer to maintain card height */}
+      <div className="flex-grow mb-4"></div>
 
       {/* Rating */}
       <div className="flex items-center gap-1 mb-4">

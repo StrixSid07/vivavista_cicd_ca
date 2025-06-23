@@ -143,6 +143,21 @@ const AccommodationCard = ({ hotel }) => {
             {hotel.about || "No description available."}
           </Typography>
 
+          {/* Board Basis */}
+          {hotel.boardBasis && (
+            <section className="mb-4">
+              <Typography
+                variant="h6"
+                className="mb-1 text-black customfontstitle"
+              >
+                Board Basis:
+              </Typography>
+              <Typography className="text-gray-900 text-sm font-medium">
+                {hotel.boardBasis.name}
+              </Typography>
+            </section>
+          )}
+
           {/* Facilities */}
           {hotel.facilities?.length > 0 && (
             <section className="mb-4">

@@ -6,6 +6,7 @@ const HotelSchema = new mongoose.Schema(
     about: { type: String },
     facilities: [{ type: String }], // List of facilities
     roomfacilities: [{ type: String }],
+    boardBasis: { type: mongoose.Schema.Types.ObjectId, ref: "BoardBasis" },
     location: { type: String, required: true },
     locationId: { type: String }, // TripAdvisor location ID - now optional
     rooms: [

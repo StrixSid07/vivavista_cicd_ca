@@ -543,7 +543,11 @@ const getDealById = async (req, res) => {
         })
         .populate({
           path: "hotels",
-          select: "name stars about rooms tripAdvisorRating facilities roomfacilities location images tripAdvisorPhotos tripAdvisorReviews tripAdvisorLatestReviews tripAdvisorLink externalBookingLink",
+          select: "name stars about rooms tripAdvisorRating facilities roomfacilities boardBasis location images tripAdvisorPhotos tripAdvisorReviews tripAdvisorLatestReviews tripAdvisorLink externalBookingLink",
+          populate: {
+            path: "boardBasis",
+            select: "name"
+          }
         })
         .populate({
           path: "prices.hotel",
@@ -573,7 +577,11 @@ const getDealById = async (req, res) => {
         })
         .populate({
           path: "hotels",
-          select: "name stars about rooms tripAdvisorRating facilities roomfacilities location images tripAdvisorPhotos tripAdvisorReviews tripAdvisorLatestReviews tripAdvisorLink externalBookingLink",
+          select: "name stars about rooms tripAdvisorRating facilities roomfacilities boardBasis location images tripAdvisorPhotos tripAdvisorReviews tripAdvisorLatestReviews tripAdvisorLink externalBookingLink",
+          populate: {
+            path: "boardBasis",
+            select: "name"
+          }
         })
         .populate({
           path: "prices.hotel",

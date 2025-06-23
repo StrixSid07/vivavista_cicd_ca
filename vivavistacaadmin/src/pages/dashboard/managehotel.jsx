@@ -9,6 +9,8 @@ import {
   Dialog,
   Radio,
   Switch,
+  Select,
+  Option,
   DialogHeader,
   DialogBody,
   DialogFooter,
@@ -26,6 +28,7 @@ import axios from "@/utils/axiosInstance";
 
 export function ManageHotel() {
   const [hotels, setHotels] = useState([]);
+  const [boardBasis, setBoardBasis] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [imageUrls, setImageUrls] = useState([""]);
   const [openViewDialog, setOpenViewDialog] = useState(false); // State for view dialog
@@ -37,6 +40,8 @@ export function ManageHotel() {
     locationId: "",
     about: "",
     facilities: [],
+    roomfacilities: [],
+    boardBasis: "",
     externalBookingLink: "",
     images: [],
   });
@@ -147,6 +152,7 @@ export function ManageHotel() {
   };
   useEffect(() => {
     fetchHotels();
+    fetchBoardBasis();
   }, []);
 
   const fetchHotels = async () => {
@@ -156,6 +162,16 @@ export function ManageHotel() {
     } catch (error) {
       console.error("Error fetching hotels:", error);
       setAlert({ message: "Error fetching hotels", type: "red" });
+    }
+  };
+
+  const fetchBoardBasis = async () => {
+    try {
+      const response = await axios.get("/boardbasis/dropdown-boardbasis");
+      setBoardBasis(response.data);
+    } catch (error) {
+      console.error("Error fetching board basis:", error);
+      setAlert({ message: "Error fetching board basis", type: "red" });
     }
   };
 
@@ -171,6 +187,7 @@ export function ManageHotel() {
             about: hotel.about,
             facilities: hotel.facilities,
             roomfacilities: hotel.roomfacilities || [],
+            boardBasis: hotel.boardBasis ? hotel.boardBasis._id : "",
             externalBookingLink: hotel.externalBookingLink,
             images: hotel.images,
           }
@@ -181,6 +198,7 @@ export function ManageHotel() {
             about: "",
             facilities: [],
             roomfacilities: [],
+            boardBasis: "",
             externalBookingLink: "",
             images: [],
           },
@@ -537,6 +555,20 @@ export function ManageHotel() {
               + Add Room Facility
             </Button>
 
+            <Select
+              label="Board Basis"
+              value={formData.boardBasis}
+              onChange={(value) =>
+                setFormData({ ...formData, boardBasis: value })
+              }
+            >
+              {boardBasis.map((basis) => (
+                <Option key={basis._id} value={basis._id}>
+                  {basis.name}
+                </Option>
+              ))}
+            </Select>
+
             <Input
               label="External Booking Link"
               value={formData.externalBookingLink}
@@ -781,6 +813,17 @@ export function ManageHotel() {
                       <li key={i}>{roomFacility}</li>
                     ))}
                   </ul>
+                </>
+              )}
+
+              {currentHotel.boardBasis && (
+                <>
+                  <Typography variant="h5" color="orange">
+                    🍽️ Board Basis:
+                  </Typography>
+                  <Typography color="black" variant="h6" className="pl-2">
+                    {currentHotel.boardBasis.name}
+                  </Typography>
                 </>
               )}
 

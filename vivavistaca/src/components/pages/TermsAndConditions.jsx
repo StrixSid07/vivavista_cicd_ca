@@ -36,11 +36,6 @@ const TermsAndConditions = () => {
         TERMS & CONDITIONS
       </h1>
 
-      <section className="mb-6">
-        <p className="mb-4 font-medium">
-          Below are the Booking Conditions under which Viva Vista Vacations will arrange bookings for flights, accommodations, transfers, excursions, train journeys, cruises, ferries, motor coaches, or other holiday requirements (the "Travel Arrangements"). The combination of travel arrangements offered constitutes a package within the meaning of the Package Travel and Linked Travel Arrangements Regulations. Therefore, you will benefit from all EU rights applicable to packages. Viva Vista Vacations is fully responsible for the proper performance of the package as a whole.
-        </p>
-      </section>
 
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-4">Booking Conditions</h2>

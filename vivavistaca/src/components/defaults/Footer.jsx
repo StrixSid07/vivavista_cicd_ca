@@ -129,7 +129,7 @@ const Footer = () => {
                   target="_blank"
                   className="transition-all ease-in-out group-hover:text-orange-600"
                 >
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit
+                  01, 195-197 Wood Street, London, England, E17 3NU
                 </a>
               </div>
             </li>

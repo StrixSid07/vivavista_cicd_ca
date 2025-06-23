@@ -33,7 +33,7 @@ const ContactUs = () => {
   useEffect(() => {
     if (countries.length) {
       const defaultIndex = countries.findIndex(
-        (c) => c.name === "United Kingdom"
+        (c) => c.name === "Canada"
       );
       if (defaultIndex !== -1) {
         setCountry(defaultIndex);
@@ -42,9 +42,9 @@ const ContactUs = () => {
   }, [countries]);
 
   const { name, flags, countryCallingCode } = countries[country] || {
-    name: "United Kingdom",
-    flags: { svg: "https://flagcdn.com/gb.svg" },
-    countryCallingCode: "+44",
+    name: "Canada",
+    flags: { svg: "https://flagcdn.com/ca.svg" },
+    countryCallingCode: "+1",
   };
 
   const [alert, setAlert] = React.useState({
@@ -148,7 +148,7 @@ const ContactUs = () => {
                   Address
                 </h1>
                 <p className="text-base flex justify-center text-left items-center gap-4 md:text-lg lg:text-xl">
-                  <FaLocationDot className="text-red-500" size={24} /> Lorem ipsum dolor sit amet, consectetur adipiscing elit
+                  <FaLocationDot className="text-red-500" size={24} /> 01, 195-197 Wood Street, London, England, E17 3NU
                 </p>
               </div>
               {/* Contact Info */}
@@ -167,8 +167,8 @@ const ContactUs = () => {
                 </h1>
                 <p className="text-base flex items-center justify-start gap-4 md:text-lg lg:text-xl transition duration-700 ease-in-out hover:text-deep-orange-500">
                   <FaEnvelope className="text-blue-600" size={24} />
-                  <a href="mailto:lorem@ipsum.com">
-                    lorem@ipsum.com
+                  <a href="mailto:admin@vivavistavacations.ca">
+                    admin@vivavistavacations.ca
                   </a>
                 </p>
               </div>

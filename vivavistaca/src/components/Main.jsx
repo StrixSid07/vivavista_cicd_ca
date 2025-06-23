@@ -106,7 +106,7 @@ const Main = () => {
             <Route path="/blogs" element={<Blogs />} />
             <Route path="/topdeals" element={<TopDeals />} />
             <Route path="/packages" element={<Packages />} />
-            <Route path="/holidays/:name" element={<Holidays />} />
+            <Route path="/vacations/:name" element={<Holidays />} />
             <Route path="/destinations/:name" element={<Destinations />} />
             <Route path="/multicenter" element={<MulticenterPage />} />
             <Route path="/groupbooking" element={<GroupBookingForm />} />

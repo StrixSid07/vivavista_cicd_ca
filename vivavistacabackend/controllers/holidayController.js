@@ -26,11 +26,12 @@ exports.addHoliday = async (req, res) => {
   const { name } = req.body;
 
   try {
-    if (!name) {
+    if (!name || !name.trim()) {
       return res.status(400).json({ message: "Name is required" });
     }
 
-    const holiday = new Holiday({ name });
+    const trimmedName = name.trim();
+    const holiday = new Holiday({ name: trimmedName });
     await holiday.save();
 
     res.status(201).json({ message: "Holiday created successfully", holiday });
@@ -52,7 +53,13 @@ exports.updateHoliday = async (req, res) => {
       return res.status(404).json({ message: "Holiday not found" });
     }
 
-    if (name) holiday.name = name;
+    if (name) {
+      const trimmedName = name.trim();
+      if (!trimmedName) {
+        return res.status(400).json({ message: "Name cannot be empty" });
+      }
+      holiday.name = trimmedName;
+    }
 
     await holiday.save();
     res.json({ message: "Holiday updated successfully", holiday });
@@ -80,33 +87,101 @@ exports.deleteHoliday = async (req, res) => {
   }
 };
 
+// Helper function to convert slug back to name for database search
+const slugToName = (slug) => {
+  // Create a mapping of common slug patterns to their corresponding names
+  const slugMappings = {
+    'centraleurope': 'Central Europe',
+    'beachholidays': 'Beach Holidays',
+    'citybreaks': 'City Breaks', 
+    'luxuryholidays': 'Luxury Holidays',
+    'familyholidays': 'Family Holidays',
+    'honeymoon': 'Honeymoon',
+    'adventure': 'Adventure',
+    'cruise': 'Cruise',
+    'ski': 'Ski',
+    'golf': 'Golf'
+  };
+  
+  const lowerSlug = slug.toLowerCase();
+  
+  // First check direct mapping
+  if (slugMappings[lowerSlug]) {
+    return slugMappings[lowerSlug];
+  }
+  
+  // If no direct mapping, try to reconstruct the name
+  // Handle camelCase conversion: "centralEurope" -> "Central Europe"
+  let reconstructed = slug.replace(/([a-z])([A-Z])/g, '$1 $2');
+  
+  // Handle space insertion for concatenated words
+  // This is a simple approach - you might need to enhance this based on your data
+  reconstructed = reconstructed.replace(/([a-z])([A-Z])/g, '$1 $2');
+  
+  // Capitalize first letter of each word
+  return reconstructed.split(' ').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join(' ');
+};
+
 exports.getFilterDealsByHoliday = async (req, res) => {
   try {
-    const rawName = req.query.name;
+    const rawSlug = req.query.slug;
+    const rawName = req.query.name; // Keep backward compatibility
 
-    if (!rawName || typeof rawName !== "string") {
+    let searchName;
+    
+    if (rawSlug) {
+      // New slug-based approach
+      if (!rawSlug || typeof rawSlug !== "string") {
+        return res
+          .status(400)
+          .json({ message: "Holiday category slug is required" });
+      }
+      
+      const slug = rawSlug.trim();
+      if (!slug) {
+        return res
+          .status(400)
+          .json({ message: "Holiday category slug cannot be empty" });
+      }
+      
+      // Convert slug to name for database search
+      searchName = slugToName(slug);
+    } else if (rawName) {
+      // Backward compatibility with name-based approach
+      if (!rawName || typeof rawName !== "string") {
+        return res
+          .status(400)
+          .json({ message: "Holiday category name is required" });
+      }
+      
+      const name = rawName.trim();
+      if (!name) {
+        return res
+          .status(400)
+          .json({ message: "Holiday category name cannot be empty" });
+      }
+      
+      searchName = name;
+    } else {
       return res
         .status(400)
-        .json({ message: "Holiday category name is required" });
+        .json({ message: "Holiday category slug or name is required" });
     }
 
-    const name = rawName.trim();
-
-    if (!name) {
-      return res
-        .status(400)
-        .json({ message: "Holiday category name cannot be empty" });
-    }
-
-    // Case-insensitive search
+    // Case-insensitive search for the holiday category, handling spaces
     const holidayCategory = await Holiday.findOne({
-      name: { $regex: new RegExp(`^${name}$`, "i") },
+      name: { $regex: new RegExp(`^\\s*${searchName.trim()}\\s*$`, "i") },
     });
 
     if (!holidayCategory) {
       return res
         .status(404)
-        .json({ message: `Holiday category '${name}' not found` });
+        .json({ 
+          message: `Holiday category not found for: ${searchName}`,
+          searchedFor: searchName 
+        });
     }
 
     // Fetch deals by holiday ID, and populate prices.hotel

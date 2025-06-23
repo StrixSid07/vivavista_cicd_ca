@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
@@ -48,25 +48,7 @@ const formatDestinationText = (primaryDestination, additionalDestinations) => {
 };
 
 const Holidays = () => {
-  const [holidayCategories, setHolidayCategories] = useState([]);
-  useEffect(() => {
-    axios
-      .get(`${Base_Url}/holidays/dropdown-holiday`)
-      .then(({ data }) => setHolidayCategories(data))
-      .catch((err) => console.error("Error fetching categories:", err));
-  }, []);
-
   const { name: slug } = useParams();
-
-  const slugToName = useMemo(
-    () =>
-      holidayCategories.reduce((map, { name }) => {
-        map[slugify(name)] = name;
-        return map;
-      }, {}),
-    [holidayCategories]
-  );
-
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [imageIndex, setImageIndex] = useState({});
@@ -76,15 +58,14 @@ const Holidays = () => {
   const itemsPerPage = window.innerWidth < 768 ? 4 : 6; // 4 for mobile, 6 for desktop
 
   useEffect(() => {
-    const realName = slugToName[slug];
-    if (!realName) return;
+    if (!slug) return;
 
     const fetchDeals = async () => {
       setLoading(true);
       try {
         const response = await axios.get(
           `${Base_Url}/holidays/holiday-filter`,
-          { params: { name: realName } }
+          { params: { slug: slug } }
         );
         setDeals(response.data);
         setImageIndex(
@@ -97,7 +78,7 @@ const Holidays = () => {
       }
     };
     fetchDeals();
-  }, [slug, slugToName]);
+  }, [slug]);
 
   const handlePrevImage = (e, dealId, images) => {
     // Stop event propagation to prevent bubbling to parent elements
@@ -131,9 +112,9 @@ const Holidays = () => {
     currentPage * itemsPerPage
   );
 
-  // Get the current holiday type name
-  const holidayTypeName = slugToName[slug] || "Holidays";
-  const holidayTypeTitle = `${holidayTypeName} Holidays`;
+  // Get the current vacation type name from slug
+  const vacationTypeName = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : "Vacations";
+  const vacationTypeTitle = `${vacationTypeName} Vacations`;
 
   return (
     <div>
@@ -148,7 +129,7 @@ const Holidays = () => {
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-gray-600/40"></div>
         <div className="hero-content text-center relative z-10">
-          <h1 className="text-5xl font-bold text-white">{holidayTypeTitle}</h1>
+          <h1 className="text-5xl font-bold text-white">{vacationTypeTitle}</h1>
         </div>
       </section>
       <div className="min-h-screen p-6 bg-gradient-to-t from-blue-900 via-blue-700 to-green-500 animate-gradient-x">
@@ -162,7 +143,7 @@ const Holidays = () => {
             <p className="text-lg text-blue-100">
               Looks like there are no deals available for this category.
               <br />
-              Please select a different holiday category to explore more
+              Please select a different vacation category to explore more
               options!
             </p>
           </div>

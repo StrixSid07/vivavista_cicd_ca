@@ -52,7 +52,7 @@ const Navbar = () => {
     axios
       .get(`${Base_Url}/holidays/dropdown-holiday`)
       .then(({ data }) => setHolidayCategories(data))
-      .catch((err) => console.error("Error fetching holiday categories:", err));
+      .catch((err) => console.error("Error fetching vacation categories:", err));
     axios
       .get(`${Base_Url}/destinations/dropdown-destionation`)
       .then(({ data }) => setDestinationCategories(data))
@@ -72,7 +72,7 @@ const Navbar = () => {
       dropdown: holidayCategories.map(({ name }) => ({
         name,
         // href: `/${name}`,
-        href: `/holidays/${slugify(name)}`,
+        href: `/vacations/${slugify(name)}`,
       })),
     },
     {
@@ -98,7 +98,7 @@ const Navbar = () => {
       dropdown: holidayCategories.map(({ name }) => ({
         name,
         // href: `/${name}`,
-        href: `/holidays/${slugify(name)}`,
+        href: `/vacations/${slugify(name)}`,
       })),
     },
     {

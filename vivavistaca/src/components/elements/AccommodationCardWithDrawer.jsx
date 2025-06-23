@@ -160,6 +160,23 @@ const AccommodationCard = ({ hotel }) => {
             </section>
           )}
 
+          {/* Room Facilities */}
+          {hotel.roomfacilities?.length > 0 && (
+            <section className="mb-4">
+              <Typography
+                variant="h6"
+                className="mb-1 text-black customfontstitle"
+              >
+                Room Facilities:
+              </Typography>
+              <ul className="list-disc pl-6 text-gray-900 text-sm space-y-1">
+                {hotel.roomfacilities.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {/* Location */}
           {hotel.location && (
             <section className="mb-4">

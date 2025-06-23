@@ -170,6 +170,7 @@ export function ManageHotel() {
             locationId: hotel.locationId,
             about: hotel.about,
             facilities: hotel.facilities,
+            roomfacilities: hotel.roomfacilities || [],
             externalBookingLink: hotel.externalBookingLink,
             images: hotel.images,
           }
@@ -179,6 +180,7 @@ export function ManageHotel() {
             locationId: "",
             about: "",
             facilities: [],
+            roomfacilities: [],
             externalBookingLink: "",
             images: [],
           },
@@ -491,6 +493,50 @@ export function ManageHotel() {
             >
               + Add Facility
             </Button>
+
+            {/* Room Facilities Section */}
+            <Typography variant="h6">Room Facilities</Typography>
+            {formData.roomfacilities && formData.roomfacilities.map((roomFacility, index) => (
+              <div key={index} className="mb-2 flex items-center gap-2">
+                <Input
+                  label={`Room Facility ${index + 1}`}
+                  value={roomFacility}
+                  onChange={(e) => {
+                    const updated = [...formData.roomfacilities];
+                    updated[index] = e.target.value;
+                    setFormData({ ...formData, roomfacilities: updated });
+                  }}
+                  className="flex-1"
+                />
+                {formData.roomfacilities.length > 1 && (
+                  <Button
+                    size="sm"
+                    color="red"
+                    onClick={() => {
+                      const updated = formData.roomfacilities.filter(
+                        (_, i) => i !== index,
+                      );
+                      setFormData({ ...formData, roomfacilities: updated });
+                    }}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              size="sm"
+              color="orange"
+              onClick={() =>
+                setFormData({
+                  ...formData,
+                  roomfacilities: [...(formData.roomfacilities || []), ""],
+                })
+              }
+            >
+              + Add Room Facility
+            </Button>
+
             <Input
               label="External Booking Link"
               value={formData.externalBookingLink}
@@ -503,7 +549,7 @@ export function ManageHotel() {
             />
             {currentHotel && (
               <Card className="mt-6 border border-blue-500 shadow-md">
-                <CardHeader color="blue" className="p-4">
+                <CardHeader color="blue" className="p-3 mt-3">
                   <Typography variant="h6" className="text-white">
                     Images
                   </Typography>
@@ -546,6 +592,7 @@ export function ManageHotel() {
               <Input
                 type="file"
                 multiple
+                label="Upload Images"
                 ref={fileInputRef}
                 accept="image/jpeg,image/jpg,image/png"
                 onChange={(e) => {
@@ -723,6 +770,19 @@ export function ManageHotel() {
                   <li key={i}>{facility}</li>
                 ))}
               </ul>
+
+              {currentHotel.roomfacilities && currentHotel.roomfacilities.length > 0 && (
+                <>
+                  <Typography variant="h5" color="orange">
+                    🏠 Room Facilities:
+                  </Typography>
+                  <ul className="text-md list-disc pl-6 font-semibold text-black">
+                    {currentHotel.roomfacilities.map((roomFacility, i) => (
+                      <li key={i}>{roomFacility}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
 
               <Typography variant="h5" color="orange">
                 🔗 External Booking:

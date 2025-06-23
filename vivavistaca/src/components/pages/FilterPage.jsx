@@ -237,6 +237,7 @@ const FilterPage = () => {
               name: hotel.name,
               about: hotel.about,
               facilities: hotel.facilities,
+              roomfacilities: hotel.roomfacilities,
               location: hotel.location,
               locationId: hotel.locationId,
               tripAdvisorRating: hotel.tripAdvisorRating,

@@ -163,6 +163,7 @@ const NewAdded = ({ data = [], loadingData }) => {
                       prevImage={() => prevImage(index)}
                       tag={property?.tag ?? ""}
                       destinations={property?.destinations ?? []}
+                      deal={property} // Pass the entire deal object for slug generation
                     />
                   </div>
                 ))}

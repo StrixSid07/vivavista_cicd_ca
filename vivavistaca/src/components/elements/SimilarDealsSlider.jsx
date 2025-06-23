@@ -121,6 +121,7 @@ export default function SimilarDealsSlider({ destinationId, dealId }) {
               nextImage={() => nextImage(index)}
               prevImage={() => prevImage(index)}
               tag={deal.tag}
+              deal={deal}
             />
           </div>
         ))}

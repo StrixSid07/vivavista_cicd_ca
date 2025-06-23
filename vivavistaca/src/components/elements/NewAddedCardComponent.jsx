@@ -15,6 +15,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { CalendarDays, MapPin, Tag } from "lucide-react";
+import { generateDealSlug } from "../../utils/slugify";
 
 
 const NewAddedCardComponent = ({
@@ -32,11 +33,13 @@ const NewAddedCardComponent = ({
   prevImage,
   tag,
   destinations,
+  deal, // Add deal object to get title for slug
 }) => {
   const navigate = useNavigate();
 
   const handleViewDetails = () => {
-    navigate(`/deals/${id}`);
+    const slug = deal ? generateDealSlug(deal) : id;
+    navigate(`/deals/${slug}`);
   };
 
 

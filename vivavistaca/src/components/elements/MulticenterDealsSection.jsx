@@ -12,6 +12,7 @@ import {
   MdOutlineArrowBackIos,
   MdOutlineArrowForwardIos,
 } from "react-icons/md";
+import { generateDealSlug } from "../../utils/slugify";
 
 
 // Function to format destination text for display
@@ -65,7 +66,7 @@ const MulticenterCard = ({ deal, index, currentImage, nextImage, prevImage }) =>
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.4 }}
             className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110 cursor-pointer"
-            onClick={() => navigate(`/deals/${deal._id}`)}
+            onClick={() => navigate(`/deals/${generateDealSlug(deal)}`)}
           />
         </div>
         
@@ -160,7 +161,7 @@ const MulticenterCard = ({ deal, index, currentImage, nextImage, prevImage }) =>
               <span className="text-xs font-normal text-gray-500 ml-1">/per person</span>
             </div>
             <button
-              onClick={() => navigate(`/deals/${deal._id}`)}
+              onClick={() => navigate(`/deals/${generateDealSlug(deal)}`)}
               className="bg-amber-500 hover:bg-amber-600 text-white text-sm py-1 px-3 rounded-full flex items-center gap-1 transition-colors"
             >
               View <ArrowRight size={14} />

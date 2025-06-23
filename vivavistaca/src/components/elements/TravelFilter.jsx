@@ -15,6 +15,7 @@ import {
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Base_Url } from "../../utils/Api";
+import { generateDealSlug } from "../../utils/slugify";
 
 const hotelTypes = [
   "Beach Hotel",
@@ -461,7 +462,7 @@ const TravelFilter = () => {
                         color="green"
                         size="sm"
                         className="customfontstitle"
-                        onClick={() => navigate(`/deals/${item._id}`)}
+                        onClick={() => navigate(`/deals/${generateDealSlug(item)}`)}
                       >
                         View Deal
                       </Button>

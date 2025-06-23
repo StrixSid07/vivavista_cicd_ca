@@ -20,7 +20,7 @@ import {
 } from "@material-tailwind/react";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Base_Url } from "../../utils/Api";
-import { slugify } from "../../utils/slugify";
+import { generateDealSlug } from "../../utils/slugify";
 import { holidays } from "../../assets";
 
 // Helper function to format destination text with multicenter support
@@ -190,7 +190,7 @@ const Holidays = () => {
                           className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105 cursor-pointer"
                           loading="eager"
                           onLoad={(e) => e.target.classList.add('loaded')}
-                          onClick={() => navigate(`/deals/${deal._id}`)}
+                          onClick={() => navigate(`/deals/${generateDealSlug(deal)}`)}
                         />
                         {/* Preload next and previous images */}
                         {deal.images.length > 1 && (
@@ -310,7 +310,7 @@ const Holidays = () => {
                         )}
                       </div>
                       <button
-                        onClick={() => navigate(`/deals/${deal._id}`)}
+                        onClick={() => navigate(`/deals/${generateDealSlug(deal)}`)}
                         className="bg-deep-orange-600 text-white px-4 py-2 rounded-lg hover:bg-deep-orange-700 transition"
                       >
                         Book Now

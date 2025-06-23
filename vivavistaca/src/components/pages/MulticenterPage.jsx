@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import axios from "axios";
 import { Base_Url } from "../../utils/Api";
+import { generateDealSlug } from "../../utils/slugify";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -208,7 +209,7 @@ const MulticenterPage = () => {
                           src={deal.images[imageIndex[deal._id]]}
                           alt={deal.title}
                           className="w-full h-full object-cover transition-transform duration-500 ease-in group-hover:scale-105 cursor-pointer"
-                          onClick={() => navigate(`/deals/${deal._id}`)}
+                          onClick={() => navigate(`/deals/${generateDealSlug(deal)}`)}
                         />
                         
                         {/* Badge */}
@@ -325,7 +326,7 @@ const MulticenterPage = () => {
                         )}
                       </div>
                       <button
-                        onClick={() => navigate(`/deals/${deal._id}`)}
+                        onClick={() => navigate(`/deals/${generateDealSlug(deal)}`)}
                         className="bg-[#1abc9c] hover:bg-teal-600 text-white py-2 px-4 rounded-lg transition-colors duration-300"
                       >
                         View Deal

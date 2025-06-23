@@ -253,7 +253,7 @@ const Navbar = () => {
                         onClick={() => {
                           setRegion(item);
                           setIsDropdownOpen(false);
-                          window.location.href = urls[item]; // ⬅️ Full redirect
+                          window.open(urls[item], '_blank'); // ⬅️ Open in new tab
                         }}
                       >
                         <img
@@ -538,7 +538,7 @@ const Navbar = () => {
                           onClick={() => {
                             setRegion(item);
                             setIsDropdownOpen(false);
-                            window.location.href = urls[item]; // 🔁 Redirect to region site
+                            window.open(urls[item], '_blank'); // 🔁 Open in new tab
                           }}
                         >
                           <img

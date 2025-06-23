@@ -5,7 +5,7 @@ const { processUploadedFile, deleteImage } = require("../middleware/imageUpload"
 const createHotel = async (req, res) => {
   try {
     const parsedData = JSON.parse(req.body.data);
-    const { name, about, facilities, roomfacilities, boardBasis, location, locationId, externalBookingLink, images } = parsedData;
+    const { name, about, facilities, roomfacilities, boardBasis, destination, location, locationId, externalBookingLink, images } = parsedData;
     console.log(req.body);
     
     console.log("this is hotle",name);
@@ -26,6 +26,7 @@ const createHotel = async (req, res) => {
       facilities,
       roomfacilities,
       boardBasis: boardBasis || null,
+      destination: destination || null,
       location,
       locationId,
       externalBookingLink,
@@ -61,7 +62,7 @@ const createHotel = async (req, res) => {
 // ✅ Get All Hotels
 const getHotels = async (req, res) => {
   try {
-    const hotels = await Hotel.find().populate("boardBasis");
+    const hotels = await Hotel.find().populate("boardBasis").populate("destination");
     res.json(hotels);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -71,7 +72,7 @@ const getHotels = async (req, res) => {
 // ✅ Get Single Hotel by ID
 const getHotelById = async (req, res) => {
   try {
-    const hotel = await Hotel.findById(req.params.id).populate("boardBasis");
+    const hotel = await Hotel.findById(req.params.id).populate("boardBasis").populate("destination");
     if (!hotel) return res.status(404).json({ message: "Hotel not found" });
 
     res.json(hotel);

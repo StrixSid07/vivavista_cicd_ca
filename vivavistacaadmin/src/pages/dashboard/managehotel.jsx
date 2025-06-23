@@ -29,6 +29,7 @@ import axios from "@/utils/axiosInstance";
 export function ManageHotel() {
   const [hotels, setHotels] = useState([]);
   const [boardBasis, setBoardBasis] = useState([]);
+  const [destinations, setDestinations] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [imageUrls, setImageUrls] = useState([""]);
   const [openViewDialog, setOpenViewDialog] = useState(false); // State for view dialog
@@ -42,6 +43,7 @@ export function ManageHotel() {
     facilities: [],
     roomfacilities: [],
     boardBasis: "",
+    destination: "",
     externalBookingLink: "",
     images: [],
   });
@@ -153,6 +155,7 @@ export function ManageHotel() {
   useEffect(() => {
     fetchHotels();
     fetchBoardBasis();
+    fetchDestinations();
   }, []);
 
   const fetchHotels = async () => {
@@ -175,6 +178,16 @@ export function ManageHotel() {
     }
   };
 
+  const fetchDestinations = async () => {
+    try {
+      const response = await axios.get("/destinations/destinations");
+      setDestinations(response.data);
+    } catch (error) {
+      console.error("Error fetching destinations:", error);
+      setAlert({ message: "Error fetching destinations", type: "red" });
+    }
+  };
+
   const handleOpenDialog = (hotel = null) => {
     setCurrentHotel(hotel);
     setFormData(
@@ -188,6 +201,7 @@ export function ManageHotel() {
             facilities: hotel.facilities,
             roomfacilities: hotel.roomfacilities || [],
             boardBasis: hotel.boardBasis ? hotel.boardBasis._id : "",
+            destination: hotel.destination ? hotel.destination._id : "",
             externalBookingLink: hotel.externalBookingLink,
             images: hotel.images,
           }
@@ -199,6 +213,7 @@ export function ManageHotel() {
             facilities: [],
             roomfacilities: [],
             boardBasis: "",
+            destination: "",
             externalBookingLink: "",
             images: [],
           },
@@ -569,6 +584,20 @@ export function ManageHotel() {
               ))}
             </Select>
 
+            <Select
+              label="Destination"
+              value={formData.destination}
+              onChange={(value) =>
+                setFormData({ ...formData, destination: value })
+              }
+            >
+              {destinations.map((destination) => (
+                <Option key={destination._id} value={destination._id}>
+                  {destination.name}
+                </Option>
+              ))}
+            </Select>
+
             <Input
               label="External Booking Link"
               value={formData.externalBookingLink}
@@ -823,6 +852,17 @@ export function ManageHotel() {
                   </Typography>
                   <Typography color="black" variant="h6" className="pl-2">
                     {currentHotel.boardBasis.name}
+                  </Typography>
+                </>
+              )}
+
+              {currentHotel.destination && (
+                <>
+                  <Typography variant="h5" color="orange">
+                    🌍 Destination:
+                  </Typography>
+                  <Typography color="black" variant="h6" className="pl-2">
+                    {currentHotel.destination.name}
                   </Typography>
                 </>
               )}

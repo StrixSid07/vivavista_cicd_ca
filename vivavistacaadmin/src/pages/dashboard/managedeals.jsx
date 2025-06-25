@@ -2683,7 +2683,7 @@ export const ManageDeals = () => {
 
                 <div className="mt-3">
                   <Typography variant="small" className="mb-2">Day {index + 1} Bulletpoints</Typography>
-                  {item.bulletpoints.map((bulletpoint, bulletIndex) => (
+                  {item.bulletpoints && item.bulletpoints.length > 0 ? item.bulletpoints.map((bulletpoint, bulletIndex) => (
                     <div key={bulletIndex} className="mb-2 flex items-center gap-2">
                       <Input
                         label={`Bulletpoint ${bulletIndex + 1}`}
@@ -2700,26 +2700,26 @@ export const ManageDeals = () => {
                         }}
                         className="flex-1"
                       />
-                      {item.bulletpoints.length > 1 && (
-                        <Button
-                          size="sm"
-                          color="red"
-                          onClick={() => {
-                            const updated = [...formData.itinerary];
-                            updated[index] = {
-                              ...updated[index],
-                              bulletpoints: updated[index].bulletpoints.filter(
-                                (_, bpIndex) => bpIndex !== bulletIndex
-                              ),
-                            };
-                            setFormData({ ...formData, itinerary: updated });
-                          }}
-                        >
-                          Remove
-                        </Button>
-                      )}
+                      <Button
+                        size="sm"
+                        color="red"
+                        onClick={() => {
+                          const updated = [...formData.itinerary];
+                          updated[index] = {
+                            ...updated[index],
+                            bulletpoints: updated[index].bulletpoints.filter(
+                              (_, bpIndex) => bpIndex !== bulletIndex
+                            ),
+                          };
+                          setFormData({ ...formData, itinerary: updated });
+                        }}
+                      >
+                        Remove
+                      </Button>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-gray-500 text-sm mb-2">No bulletpoints added</div>
+                  )}
                   <Button
                     size="sm"
                     color="green"

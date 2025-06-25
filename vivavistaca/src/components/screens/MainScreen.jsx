@@ -96,7 +96,7 @@ const MainScreen = () => {
       </div>
       <div className="mt-[540px] md:mt-0 w-full z-10 flex justify-center items-center bg-white/30 font-body text-black py-2 mb-10">
         <div className="text-xl md:text-4xl p-2 md:p-0 mt-10 font-bold text-center max-w-4xl customfontstitle -mb-12 mb:mb-0">
-          This Week's Best - No Fluff, Just Value.
+          Top Tier Picks - Zero Fluff, Pure Value
         </div>
       </div>
       {/* <NewAdded data={data?.featuredDeals} /> */}
@@ -115,12 +115,12 @@ const MainScreen = () => {
         {data?.destination && <CountrySlider destinations={data.destination} />}
         {/* <CountrySlider destinations={destinationsData || []} /> */}
       </div>
-      
+
       {/* Multicenter Deals Section */}
       {data?.multicenterDeals && data.multicenterDeals.length > 0 && (
         <MulticenterDealsSection deals={data.multicenterDeals} />
       )}
-      
+
       <Looking />
       <div className="md:p-0 mt-3 md:mt-10">
         <Autoslider slides={autoSlides} />

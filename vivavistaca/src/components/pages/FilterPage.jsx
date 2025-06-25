@@ -61,23 +61,23 @@ const formatDestinationText = (primaryDestination, additionalDestinations, selec
     });
   }
   
-  // Format primary destination with its places
+  // Format primary destination with its places using dash format
   let result = "";
   if (primaryDestination) {
     result = primaryDestination.name || primaryDestination;
     const primaryDestId = primaryDestination._id;
     if (selectedPlacesMap[primaryDestId] && selectedPlacesMap[primaryDestId].length > 0) {
-      result += ` (${selectedPlacesMap[primaryDestId].join(", ")})`;
+      result += ` - ${selectedPlacesMap[primaryDestId].join(", ")}`;
     }
   }
   
-  // Add additional destinations with their places
+  // Add additional destinations with their places using dash format
   if (additionalDestinations && additionalDestinations.length > 0) {
     const formattedDestinations = additionalDestinations.map(dest => {
       const destId = dest._id;
       const destName = dest.name;
       if (selectedPlacesMap[destId] && selectedPlacesMap[destId].length > 0) {
-        return `${destName} (${selectedPlacesMap[destId].join(", ")})`;
+        return `${destName} - ${selectedPlacesMap[destId].join(", ")}`;
       }
       return destName;
     });
@@ -409,10 +409,13 @@ const FilterPage = () => {
                       tripData.destination?.name || "Unknown Location"
                     )}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Tag className="w-4 h-4 text-purple-500" />
-                    {tripData.tag || "Save 20%"}
-                  </div>
+                  {/* Only show tag if it exists and is not empty */}
+                  {tripData.tag && (
+                    <div className="flex items-center gap-1">
+                      <Tag className="w-4 h-4 text-purple-500" />
+                      {tripData.tag}
+                    </div>
+                  )}
                   <div className="flex items-center gap-1">
                     <CalendarCheck className="w-4 h-4 text-green-600" />
                     {tripData.days || 0} Nights
@@ -454,10 +457,13 @@ const FilterPage = () => {
                     <CalendarCheck className="w-6 h-7 text-green-600" />
                     {tripData.days || 0} Nights
                   </div>
-                  <div className="flex items-center gap-2 text-base text-gray-600">
-                    <Tag className="w-6 h-7 text-purple-500" />
-                    {tripData.tag || "General Package"}
-                  </div>
+                  {/* Only show tag if it exists and is not empty */}
+                  {tripData.tag && (
+                    <div className="flex items-center gap-2 text-base text-gray-600">
+                      <Tag className="w-6 h-7 text-purple-500" />
+                      {tripData.tag}
+                    </div>
+                  )}
                   
                   {/* Mobile Share Button */}
                   <button 

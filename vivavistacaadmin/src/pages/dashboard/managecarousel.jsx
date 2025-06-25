@@ -15,9 +15,10 @@ import axios from "@/utils/axiosInstance";
 
 export function ManageCarousel() {
   const [carousels, setCarousels] = useState([]);
+  const [deals, setDeals] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [currentCarousel, setCurrentCarousel] = useState(null);
-  const [formData, setFormData] = useState({ images: [] });
+  const [formData, setFormData] = useState({ images: [], deal: "" });
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ message: "", type: "" });
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -29,6 +30,7 @@ export function ManageCarousel() {
 
   useEffect(() => {
     fetchCarousels();
+    fetchDeals();
   }, []);
 
   useEffect(() => {
@@ -47,6 +49,16 @@ export function ManageCarousel() {
     } catch (error) {
       console.error("Error fetching carousels:", error);
       setAlert({ message: "Error fetching carousels", type: "red" });
+    }
+  };
+
+  const fetchDeals = async () => {
+    try {
+      const response = await axios.get("/carousel/deals");
+      setDeals(response.data);
+    } catch (error) {
+      console.error("Error fetching deals:", error);
+      setAlert({ message: "Error fetching deals", type: "red" });
     }
   };
 
@@ -77,7 +89,13 @@ export function ManageCarousel() {
     setTimeout(() => setButtonDisabled(false), 500); // Prevent double-clicks for 500ms
     
     setCurrentCarousel(carousel);
-    setFormData(carousel ? { images: carousel.images } : { images: [] });
+    setFormData(carousel ? { 
+      images: carousel.images, 
+      deal: carousel.deal?._id || "" 
+    } : { 
+      images: [], 
+      deal: "" 
+    });
     setImageError("");
     setOpenDialog(true);
   };
@@ -85,12 +103,18 @@ export function ManageCarousel() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setCurrentCarousel(null);
+    setFormData({ images: [], deal: "" });
     setIsSubmitting(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.images.length === 0) return;
+    
+    // For new carousel, require image. For edit, image is optional
+    if (!currentCarousel && formData.images.length === 0) {
+      setAlert({ message: "Please select an image", type: "red" });
+      return;
+    }
     
     // Prevent duplicate submissions
     if (isSubmitting) return;
@@ -105,7 +129,14 @@ export function ManageCarousel() {
     setLoading(true);
     
     const formDataToSend = new FormData();
-    formDataToSend.append("images", formData.images[0]); // Only one image
+    
+    // Only append image if one was selected
+    if (formData.images.length > 0) {
+      formDataToSend.append("images", formData.images[0]);
+    }
+    
+    // Always append deal (can be empty string)
+    formDataToSend.append("deal", formData.deal || "");
 
     try {
       if (currentCarousel) {
@@ -123,7 +154,11 @@ export function ManageCarousel() {
       handleCloseDialog();
     } catch (error) {
       console.error("Error saving carousel:", error);
-      setAlert({ message: "Error saving carousel", type: "red" });
+      console.error("Error details:", error.response?.data);
+      setAlert({ 
+        message: error.response?.data?.message || "Error saving carousel", 
+        type: "red" 
+      });
     } finally {
       setLoading(false);
       setIsSubmitting(false);
@@ -187,12 +222,20 @@ export function ManageCarousel() {
                   {carousel.images.map((image, index) => (
                     <img
                       key={index}
-                                              src={image}
+                      src={image}
                       alt={`Carousel Image ${index + 1}`}
                       className="h-48 w-96 rounded-md object-cover shadow-md transition-all duration-500 ease-in-out"
                     />
                   ))}
                 </div>
+                
+                {carousel.deal && (
+                  <div className="mt-2 rounded-md bg-blue-50 p-2">
+                    <Typography variant="small" color="blue-gray" className="font-medium">
+                      Linked Deal: {carousel.deal.title}
+                    </Typography>
+                  </div>
+                )}
 
                 <div className="mt-4 flex items-center gap-4">
                   <Button
@@ -240,13 +283,13 @@ export function ManageCarousel() {
                   const file = e.target.files[0];
                   if (file) {
                     if (validateImage(file)) {
-                      setFormData({ images: [file] });
+                      setFormData({ ...formData, images: [file] });
                     } else {
                       e.target.value = null; // Reset the input
                     }
                   }
                 }}
-                required
+                required={!currentCarousel}
                 disabled={isSubmitting}
                 className="block w-full text-sm text-gray-900 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-600 hover:file:bg-blue-100"
               />
@@ -254,6 +297,24 @@ export function ManageCarousel() {
                 <p className="mt-1 text-sm text-red-500">{imageError}</p>
               )}
             </div>
+                         <div>
+               <label className="mb-1 block text-sm font-medium text-gray-700">
+                 Select Deal
+               </label>
+               <select
+                 value={formData.deal}
+                 onChange={(e) => setFormData({ ...formData, deal: e.target.value })}
+                 disabled={isSubmitting}
+                 className="block w-full max-h-48 overflow-y-auto rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+               >
+                 <option value="">Select a deal</option>
+                 {deals.map((deal) => (
+                   <option key={deal._id} value={deal._id}>
+                     {deal.title}
+                   </option>
+                 ))}
+               </select>
+             </div>
           </form>
         </DialogBody>
         <DialogFooter>

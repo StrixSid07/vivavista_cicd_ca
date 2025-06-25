@@ -50,6 +50,7 @@ const MainScreen = () => {
       const allSlides = res.data.flatMap((item) =>
         item.images.map((url) => ({
           image: url,
+          deal: item.deal || null, // Include deal information if available
         }))
       );
       setSlides(allSlides);

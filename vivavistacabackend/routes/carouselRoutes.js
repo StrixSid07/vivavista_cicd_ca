@@ -4,6 +4,7 @@ const carouselController = require("../controllers/carouselController");
 const { upload } = require("../middleware/imageUpload");
 const { protect, isAdmin } = require("../middleware/authMiddleware");
 
+router.get("/deals", carouselController.getAllDealsForDropdown);
 router.post(
   "/",
   upload.array("images", 5),

@@ -3,6 +3,7 @@ const Destination = require("../models/Destination");
 const Review = require("../models/Review");
 const Blog = require("../models/Blog");
 const Newsletter = require("../models/Newsletter");
+const Carousel = require("../models/Carousel");
 const { processUploadedFile, deleteImage } = require("../middleware/imageUpload");
 require("dotenv").config();
 const validator = require("validator");
@@ -233,6 +234,14 @@ exports.getHomepageData = async (req, res) => {
       .select("title image shortDescription createdAt")
       .limit(3);
 
+    // Get carousels with deal information populated
+    const carousels = await Carousel.find()
+      .populate({
+        path: "deal",
+        select: "title",
+      })
+      .sort({ createdAt: -1 });
+
     // Response
     res.json({
       featuredDeals,
@@ -240,6 +249,7 @@ exports.getHomepageData = async (req, res) => {
       multicenterDeals,
       reviews,
       blogs,
+      carousels,
     });
   } catch (error) {
     console.error("Homepage Data Error:", error);

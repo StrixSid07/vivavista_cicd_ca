@@ -46,6 +46,7 @@ export function ManageHotel() {
     destination: "",
     externalBookingLink: "",
     images: [],
+    roomType: "",
   });
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ message: "", type: "" });
@@ -65,13 +66,13 @@ export function ManageHotel() {
     if (!allowedTypes.includes(file.type)) {
       return "Only JPG, JPEG, and PNG files are allowed";
     }
-    
+
     // Check file size (5MB limit)
     const maxSize = 5 * 1024 * 1024; // 5MB in bytes
     if (file.size > maxSize) {
       return "Image size must be less than 5MB";
     }
-    
+
     return "";
   };
 
@@ -146,9 +147,9 @@ export function ManageHotel() {
       }));
     } catch (error) {
       console.error("Error deleting image:", error);
-      setAlert({ 
-        message: error.response?.data?.message || "Error deleting image", 
-        type: "red" 
+      setAlert({
+        message: error.response?.data?.message || "Error deleting image",
+        type: "red"
       });
     }
   };
@@ -193,30 +194,32 @@ export function ManageHotel() {
     setFormData(
       hotel
         ? {
-            _id: hotel._id,
-            name: hotel.name,
-            location: hotel.location,
-            locationId: hotel.locationId,
-            about: hotel.about,
-            facilities: hotel.facilities,
-            roomfacilities: hotel.roomfacilities || [],
-            boardBasis: hotel.boardBasis ? hotel.boardBasis._id : "",
-            destination: hotel.destination ? hotel.destination._id : "",
-            externalBookingLink: hotel.externalBookingLink,
-            images: hotel.images,
-          }
+          _id: hotel._id,
+          name: hotel.name,
+          location: hotel.location,
+          locationId: hotel.locationId,
+          about: hotel.about,
+          facilities: hotel.facilities,
+          roomfacilities: hotel.roomfacilities || [],
+          boardBasis: hotel.boardBasis ? hotel.boardBasis._id : "",
+          destination: hotel.destination ? hotel.destination._id : "",
+          externalBookingLink: hotel.externalBookingLink,
+          images: hotel.images,
+          roomType: hotel.roomType || "",
+        }
         : {
-            name: "",
-            location: "",
-            locationId: "",
-            about: "",
-            facilities: [],
-            roomfacilities: [],
-            boardBasis: "",
-            destination: "",
-            externalBookingLink: "",
-            images: [],
-          },
+          name: "",
+          location: "",
+          locationId: "",
+          about: "",
+          facilities: [],
+          roomfacilities: [],
+          boardBasis: "",
+          destination: "",
+          externalBookingLink: "",
+          images: [],
+          roomType: "",
+        },
     );
     setImageUrls(hotel ? hotel.images : [""]);
     setImageError("");
@@ -242,13 +245,13 @@ export function ManageHotel() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Check if there's an image error before proceeding
     if (imageError) {
       setAlert({ message: imageError, type: "red" });
       return;
     }
-    
+
     setLoading(true);
     try {
       console.log(formData);
@@ -485,6 +488,13 @@ export function ManageHotel() {
                 setFormData({ ...formData, about: e.target.value })
               }
             />
+            <Input
+              label="Room Type"
+              value={formData.roomType}
+              onChange={(e) =>
+                setFormData({ ...formData, roomType: e.target.value })
+              }
+            />
             <Typography variant="h6">Facilities</Typography>
             {formData.facilities.map((facility, index) => (
               <div key={index} className="mb-2 flex items-center gap-2">
@@ -618,7 +628,7 @@ export function ManageHotel() {
                 <CardBody className="p-4">
                   <div className="flex flex-wrap gap-2">
                     {Array.isArray(formData.images) &&
-                    formData.images.length > 0 ? (
+                      formData.images.length > 0 ? (
                       formData.images.map((image, index) => (
                         <div key={index} className="group relative h-20 w-20">
                           <img
@@ -658,7 +668,7 @@ export function ManageHotel() {
                 accept="image/jpeg,image/jpg,image/png"
                 onChange={(e) => {
                   const files = Array.from(e.target.files);
-                  
+
                   // Allow 10 images for both new and existing hotels
                   const maxImages = 10;
                   if (
@@ -677,7 +687,7 @@ export function ManageHotel() {
                     e.target.value = ""; // reset the input
                     return;
                   }
-                  
+
                   // Clear any previous errors
                   setImageError("");
                   setNewImages((prevImages) => [...prevImages, ...files]);
@@ -686,10 +696,10 @@ export function ManageHotel() {
               {imageError && (
                 <div className="mt-2 flex items-center justify-between">
                   <p className="text-sm text-red-500">{imageError}</p>
-                  <Button 
-                    size="sm" 
-                    color="red" 
-                    variant="text" 
+                  <Button
+                    size="sm"
+                    color="red"
+                    variant="text"
                     onClick={() => {
                       setImageError("");
                       setNewImages([]); // Clear only the new images
@@ -814,6 +824,17 @@ export function ManageHotel() {
               >
                 {currentHotel.about}
               </Typography>
+
+              {currentHotel.roomType && (
+                <>
+                  <Typography variant="h5" color="orange">
+                    🏨 Room Type:
+                  </Typography>
+                  <Typography color="black" variant="h6" className="pl-2">
+                    {currentHotel.roomType}
+                  </Typography>
+                </>
+              )}
 
               <Typography variant="h5" color="orange">
                 🏅 TripAdvisor:

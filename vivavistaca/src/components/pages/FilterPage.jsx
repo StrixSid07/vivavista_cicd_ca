@@ -250,6 +250,7 @@ const FilterPage = () => {
               rooms: hotel.rooms,
               tripAdvisorLatestReviews: hotel.tripAdvisorLatestReviews,
               tripAdvisorLink: hotel.tripAdvisorLink,
+              roomType: hotel.roomType,
             }))
           );
         }

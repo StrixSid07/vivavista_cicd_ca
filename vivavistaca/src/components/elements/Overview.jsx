@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Hotel,
   MapPin,
+  Bed,
 } from "lucide-react";
 import { AccommodationSlider } from "./AccommodationSlider";
 
@@ -211,6 +212,13 @@ const Overview = ({
           label="Guests"
           value={tripData.guests}
         />
+        {hotels?.length > 0 && hotels[0]?.roomType && (
+          <InfoItem
+            icon={<Bed className="text-orange-500 w-5 h-5" />}
+            label="Room Type"
+            value={hotels[0].roomType}
+          />
+        )}
       </div>
 
       {/* Highlights */}

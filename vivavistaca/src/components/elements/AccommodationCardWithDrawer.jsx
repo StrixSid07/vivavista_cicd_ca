@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
-import { Hotel, MapPin, Utensils } from "lucide-react";
+import { Hotel, MapPin, Utensils, Bed } from "lucide-react";
 import {
   Drawer,
   Button,
@@ -82,6 +82,16 @@ const AccommodationCard = ({ hotel }) => {
           <Utensils className="w-4 h-4 text-green-500" />
           <p className="text-sm text-gray-600 truncate">
             {hotel.boardBasis.name}
+          </p>
+        </div>
+      )}
+
+      {/* Room Type */}
+      {hotel.roomType && (
+        <div className="flex items-center gap-2 mb-3">
+          <Bed className="w-4 h-4 text-purple-500" />
+          <p className="text-sm text-gray-600 truncate">
+            {hotel.roomType}
           </p>
         </div>
       )}
@@ -185,6 +195,21 @@ const AccommodationCard = ({ hotel }) => {
               </Typography>
               <Typography className="text-gray-900 text-sm font-medium">
                 {hotel.boardBasis.name}
+              </Typography>
+            </section>
+          )}
+
+          {/* Room Type */}
+          {hotel.roomType && (
+            <section className="mb-4">
+              <Typography
+                variant="h6"
+                className="mb-1 text-black customfontstitle"
+              >
+                Room Type:
+              </Typography>
+              <Typography className="text-gray-900 text-sm font-medium">
+                {hotel.roomType}
               </Typography>
             </section>
           )}

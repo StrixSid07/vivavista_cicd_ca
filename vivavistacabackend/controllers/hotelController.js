@@ -5,7 +5,7 @@ const { processUploadedFile, deleteImage } = require("../middleware/imageUpload"
 const createHotel = async (req, res) => {
   try {
     const parsedData = JSON.parse(req.body.data);
-    const { name, about, facilities, roomfacilities, boardBasis, destination, location, locationId, externalBookingLink, images } = parsedData;
+    const { name, about, facilities, roomfacilities, boardBasis, destination, location, locationId, externalBookingLink, images, roomType } = parsedData;
     console.log(req.body);
     
     console.log("this is hotle",name);
@@ -31,6 +31,7 @@ const createHotel = async (req, res) => {
       locationId,
       externalBookingLink,
       images:imageUrls,
+      roomType,
     });
 
     await newHotel.save();

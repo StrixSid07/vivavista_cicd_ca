@@ -16,6 +16,7 @@ const HotelSchema = new mongoose.Schema(
         guestCapacity: { type: Number, required: true }, // Max guests allowed
       },
     ],
+    roomType: { type: String }, // Room type field for any string value
     tripAdvisorRating: { type: Number }, // Auto-fetched from TripAdvisor
     tripAdvisorReviews: { type: Number }, // Number of reviews
     tripAdvisorPhotos: [{ type: String }], // Store up to 5 photo URLs

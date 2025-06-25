@@ -124,6 +124,7 @@ export const ManageDeals = () => {
     destinations: false,
     hotels: false,
     places: false, // Add places dropdown state
+    primaryDestination: false, // Add primary destination dropdown state
     priceAirports: {} // Will store airport dropdown states by price index
   });
 
@@ -133,6 +134,7 @@ export const ManageDeals = () => {
     holidayCategories: '',
     hotels: '',
     places: '', // Add places search state
+    primaryDestination: '', // Add primary destination search state
     priceAirports: {}
   });
 
@@ -1201,34 +1203,85 @@ export const ManageDeals = () => {
             </div>
 
             {/* Single destination support (legacy) */}
-            <Select
-              label="Primary Destination"
-              value={formData.destination}
-              onChange={(value) => {
-                // If this destination is in the multicenter list, remove it
-                const updatedDestinations = formData.destinations.filter(
-                  id => id.toString() !== value.toString()
-                );
-                
-                // Update form data
-                setFormData({ 
-                  ...formData, 
-                  destination: value,
-                  destinations: updatedDestinations,
-                  selectedPlaces: [] // Reset selected places when destination changes
-                });
-                
-                // Update available places for the selected destination
-                fetchPlacesForDestination(value);
-              }}
-              required
-            >
-              {destinations.map((destination) => (
-                <Option key={destination._id} value={destination._id}>
-                  {destination.name}
-                </Option>
-              ))}
-            </Select>
+            <div className="relative">
+              <Typography variant="h6">Primary Destination</Typography>
+              <button
+                type="button"
+                className="w-full flex items-center justify-between bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded"
+                onClick={() => setCustomDropdownOpen(prev => ({
+                  ...prev,
+                  primaryDestination: !prev.primaryDestination
+                }))}
+              >
+                <span className="text-left">
+                  {formData.destination 
+                    ? destinations.find(d => d._id === formData.destination)?.name || "Select Primary Destination"
+                    : "Select Primary Destination"}
+                </span>
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              
+              {customDropdownOpen.primaryDestination && (
+                <>
+                  <div 
+                    className="absolute z-[100000] mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-64 overflow-hidden flex flex-col"
+                  >
+                    {/* Search input */}
+                    <div className="p-2 border-b sticky top-0 bg-white">
+                      <input
+                        type="text"
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                        placeholder="Search destinations..."
+                        value={dropdownSearch.primaryDestination}
+                        onChange={(e) => handleSearchChange('primaryDestination', e.target.value)}
+                      />
+                    </div>
+                    
+                    {/* Options list with scroll */}
+                    <div className="overflow-y-auto max-h-48">
+                      {destinations
+                        .filter(destination => 
+                          destination.name.toLowerCase().includes(dropdownSearch.primaryDestination.toLowerCase())
+                        )
+                        .map((destination) => (
+                          <div 
+                            key={destination._id}
+                            className="p-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700"
+                            onClick={() => {
+                              // If this destination is in the multicenter list, remove it
+                              const updatedDestinations = formData.destinations.filter(
+                                id => id.toString() !== destination._id.toString()
+                              );
+                              
+                              // Update form data
+                              setFormData({ 
+                                ...formData, 
+                                destination: destination._id,
+                                destinations: updatedDestinations,
+                                selectedPlaces: [] // Reset selected places when destination changes
+                              });
+                              
+                              // Update available places for the selected destination
+                              fetchPlacesForDestination(destination._id);
+                              
+                              // Close dropdown
+                              setCustomDropdownOpen(prev => ({...prev, primaryDestination: false}));
+                            }}
+                          >
+                            {destination.name}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                  <div 
+                    className="fixed inset-0 z-[10000]" 
+                    onClick={() => setCustomDropdownOpen(prev => ({...prev, primaryDestination: false}))}
+                  ></div>
+                </>
+              )}
+            </div>
             
             {/* Button to select places for primary destination */}
             {formData.destination && (

@@ -118,13 +118,21 @@ const Holidays = () => {
 
   // Get the current vacation type name from slug
   const vacationTypeName = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : "Vacations";
-  const vacationTypeTitle = `${vacationTypeName} Vacations`;
+  
+  // Format title for better mobile display
+  const formatTitle = (name) => {
+    // Replace hyphens with spaces and clean up the text
+    return name.replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+  };
+  
+  const formattedVacationName = formatTitle(vacationTypeName);
+  const vacationTypeTitle = `${formattedVacationName} Vacations`;
 
   return (
     <div>
       {" "}
       <section
-        className="relative bg-cover bg-center h-40 flex items-center justify-center"
+        className="relative bg-cover bg-center h-32 md:h-40 flex items-center justify-center"
         style={{
           backgroundImage: `url(${holidays})`,
           backgroundSize: "cover",
@@ -132,8 +140,10 @@ const Holidays = () => {
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-gray-600/40"></div>
-        <div className="hero-content text-center relative z-10">
-          <h1 className="text-5xl font-bold text-white">{vacationTypeTitle}</h1>
+        <div className="hero-content text-center relative z-10 px-4 max-w-4xl mx-auto">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold text-white break-words leading-tight hyphens-auto">
+            {vacationTypeTitle}
+          </h1>
         </div>
       </section>
       <div className="min-h-screen p-6 bg-gradient-to-t from-blue-900 via-blue-700 to-green-500 animate-gradient-x">

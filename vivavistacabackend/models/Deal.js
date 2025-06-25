@@ -9,6 +9,11 @@ const ItineraryItemSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  bulletpoints: {
+    type: [String],
+    default: [],
+    required: false,
+  },
 });
 
 const DealSchema = new mongoose.Schema(

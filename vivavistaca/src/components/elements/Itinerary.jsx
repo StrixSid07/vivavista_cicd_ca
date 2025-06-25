@@ -86,7 +86,16 @@ const Itinerary = ({ itinerary, openDays, setOpenDays }) => {
                     className="overflow-hidden"
                   >
                     <div className="py-2 text-gray-700">
-                      {day.description || "No details available."}
+                      <p className="mb-3">{day.description || "No details available."}</p>
+                      {day.bulletpoints && day.bulletpoints.length > 0 && day.bulletpoints.some(bp => bp.trim()) && (
+                        <div className="mt-3">
+                          <ul className="list-disc pl-5 space-y-1">
+                            {day.bulletpoints.filter(bp => bp.trim()).map((bulletpoint, bpIndex) => (
+                              <li key={bpIndex} className="text-sm text-gray-600">{bulletpoint}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}

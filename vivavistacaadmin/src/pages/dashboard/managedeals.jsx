@@ -65,7 +65,7 @@ export const ManageDeals = () => {
     boardBasis: "",
     hotels: [],
     holidaycategories: [],
-    itinerary: [{ title: "", description: "" }],
+    itinerary: [{ title: "", description: "", bulletpoints: [""] }],
     whatsIncluded: [""],
     exclusiveAdditions: [""],
     termsAndConditions: [""],
@@ -320,7 +320,7 @@ export const ManageDeals = () => {
       boardBasis: "",
       hotels: [],
       holidaycategories: [],
-      itinerary: [{ title: "", description: "" }],
+      itinerary: [{ title: "", description: "", bulletpoints: [""] }],
       whatsIncluded: [""],
       exclusiveAdditions: [""],
       termsAndConditions: [""],
@@ -381,7 +381,11 @@ export const ManageDeals = () => {
                   typeof cat === "object" ? cat._id : cat,
                 )
               : [],
-            itinerary: deal.itinerary || [{ title: "", description: "" }],
+            itinerary: deal.itinerary ? deal.itinerary.map(item => ({
+              title: item.title || "",
+              description: item.description || "",
+              bulletpoints: item.bulletpoints || [""]
+            })) : [{ title: "", description: "", bulletpoints: [""] }],
             whatsIncluded: deal.whatsIncluded || [""],
             exclusiveAdditions: deal.exclusiveAdditions || [""],
             termsAndConditions: deal.termsAndConditions || [""],
@@ -2676,6 +2680,61 @@ export const ManageDeals = () => {
                   }}
                   textarea
                 />
+
+                <div className="mt-3">
+                  <Typography variant="small" className="mb-2">Day {index + 1} Bulletpoints</Typography>
+                  {item.bulletpoints.map((bulletpoint, bulletIndex) => (
+                    <div key={bulletIndex} className="mb-2 flex items-center gap-2">
+                      <Input
+                        label={`Bulletpoint ${bulletIndex + 1}`}
+                        value={bulletpoint}
+                        onChange={(e) => {
+                          const updated = [...formData.itinerary];
+                          updated[index] = {
+                            ...updated[index],
+                            bulletpoints: updated[index].bulletpoints.map((bp, bpIndex) =>
+                              bpIndex === bulletIndex ? e.target.value : bp
+                            ),
+                          };
+                          setFormData({ ...formData, itinerary: updated });
+                        }}
+                        className="flex-1"
+                      />
+                      {item.bulletpoints.length > 1 && (
+                        <Button
+                          size="sm"
+                          color="red"
+                          onClick={() => {
+                            const updated = [...formData.itinerary];
+                            updated[index] = {
+                              ...updated[index],
+                              bulletpoints: updated[index].bulletpoints.filter(
+                                (_, bpIndex) => bpIndex !== bulletIndex
+                              ),
+                            };
+                            setFormData({ ...formData, itinerary: updated });
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    size="sm"
+                    color="green"
+                    onClick={() => {
+                      const updated = [...formData.itinerary];
+                      updated[index] = {
+                        ...updated[index],
+                        bulletpoints: [...updated[index].bulletpoints, ""],
+                      };
+                      setFormData({ ...formData, itinerary: updated });
+                    }}
+                  >
+                    + Add Bulletpoint
+                  </Button>
+                </div>
               </div>
             ))}
 
@@ -2687,7 +2746,7 @@ export const ManageDeals = () => {
                   ...formData,
                   itinerary: [
                     ...formData.itinerary,
-                    { title: "", description: "" }, // ← new object
+                    { title: "", description: "", bulletpoints: [""] }, // ← new object
                   ],
                 })
               }
@@ -3363,11 +3422,21 @@ export const ManageDeals = () => {
                 </CardHeader>
                 <CardBody className="p-4">
                   {currentDeal.itinerary && currentDeal.itinerary.length > 0 ? (
-                    <ol className="list-decimal space-y-2 pl-5 text-black">
+                    <ol className="list-decimal space-y-4 pl-5 text-black">
                       {currentDeal.itinerary.map((item, index) => (
                         <li key={index}>
                           <strong>{item.title}</strong>
-                          <p>{item.description}</p>
+                          <p className="mb-2">{item.description}</p>
+                          {item.bulletpoints && item.bulletpoints.length > 0 && item.bulletpoints.some(bp => bp.trim()) && (
+                            <div className="ml-4">
+                              <strong className="text-sm text-blue-600">Bulletpoints:</strong>
+                              <ul className="list-disc pl-5 mt-1">
+                                {item.bulletpoints.filter(bp => bp.trim()).map((bulletpoint, bpIndex) => (
+                                  <li key={bpIndex} className="text-sm">{bulletpoint}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
                         </li>
                       ))}
                     </ol>

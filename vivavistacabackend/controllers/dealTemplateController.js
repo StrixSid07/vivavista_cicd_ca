@@ -345,9 +345,14 @@ exports.downloadAllDeals = async (req, res) => {
           const boardBasisName = deal.boardBasis?.name || "";
           const boardBasisId = deal.boardBasis?._id || "";
         
-          const itinerary = Array.isArray(deal.itinerary)
-            ? deal.itinerary.map((item) => `${item?.title || ""}::${item?.description || ""}`).join("|")
-            : "";
+                  const itinerary = Array.isArray(deal.itinerary)
+          ? deal.itinerary.map((item) => {
+              const bulletpoints = Array.isArray(item?.bulletpoints) 
+                ? item.bulletpoints.filter(bp => bp && bp.trim()).join(";;")
+                : "";
+              return `${item?.title || ""}::${item?.description || ""}::${bulletpoints}`;
+            }).join("|")
+          : "";
         
           mainSheet.addRow({
             _id: deal._id || "",
@@ -486,6 +491,7 @@ exports.bulkUploadDeals = async (req, res) => {
           ? row["Itinerary (| separated)"].split("|").map((item, index) => ({
               title: `Day ${index + 1}`,
               description: item.trim(),
+              bulletpoints: [""],
             }))
           : [],
         termsAndConditions: row["Terms And Conditions (| separated)"]
@@ -611,6 +617,7 @@ console.log(jsonData);
           ? row["Itinerary (| separated)"].split("|").map((item, index) => ({
               title: `Day ${index + 1}`,
               description: item.trim(),
+              bulletpoints: [""],
             }))
           : [],
         termsAndConditions: row["Terms And Conditions (| separated)"]
@@ -838,8 +845,13 @@ function parseItinerary(rawValue) {
   return String(rawValue)
     .split("|")
     .map((item) => {
-      const [title, description] = item.split("::");
-      return { title: title?.trim(), description: description?.trim() };
+      const [title, description, bulletpointsStr] = item.split("::");
+      const bulletpoints = bulletpointsStr ? bulletpointsStr.split(";;").map(bp => bp.trim()).filter(bp => bp) : [""];
+      return { 
+        title: title?.trim(), 
+        description: description?.trim(),
+        bulletpoints: bulletpoints.length > 0 ? bulletpoints : [""]
+      };
     })
     .filter((item) => item.title && item.description);
 }

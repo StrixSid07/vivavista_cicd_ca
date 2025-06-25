@@ -15,7 +15,7 @@ import { navbarStyles } from "../../styles/styles";
 import { logo, home, packageImg, hot, beach, earth } from "../../assets";
 import axios from "axios";
 import { Base_Url } from "../../utils/Api";
-import { slugify } from "../../utils/slugify";
+import { slugify, slugifyholiday } from "../../utils/slugify";
 
 const sidebarVariants = {
   hidden: { x: "-100%", opacity: 0 },
@@ -72,7 +72,7 @@ const Navbar = () => {
       dropdown: holidayCategories.map(({ name }) => ({
         name,
         // href: `/${name}`,
-        href: `/vacations/${slugify(name)}`,
+        href: `/vacations/${slugifyholiday(name)}`,
       })),
     },
     {

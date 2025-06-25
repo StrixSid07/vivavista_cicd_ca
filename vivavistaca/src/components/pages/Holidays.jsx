@@ -21,6 +21,7 @@ import {
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Base_Url } from "../../utils/Api";
 import { generateDealSlug } from "../../utils/slugify";
+import { unslugify } from "../../utils/slugify";
 import { holidays } from "../../assets";
 
 // Helper function to format destination text with multicenter support
@@ -49,6 +50,8 @@ const formatDestinationText = (primaryDestination, additionalDestinations) => {
 
 const Holidays = () => {
   const { name: slug } = useParams();
+  console.log("this is slug", unslugify(slug));
+  const slugname = unslugify(slug);;
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [imageIndex, setImageIndex] = useState({});
@@ -65,8 +68,9 @@ const Holidays = () => {
       try {
         const response = await axios.get(
           `${Base_Url}/holidays/holiday-filter`,
-          { params: { slug: slug } }
+          { params: { slug: slugname } }
         );
+        console.log("this is fetch data", response);
         setDeals(response.data);
         setImageIndex(
           response.data.reduce((acc, deal) => ({ ...acc, [deal._id]: 0 }), {})

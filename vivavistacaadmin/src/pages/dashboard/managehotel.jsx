@@ -59,6 +59,25 @@ export function ManageHotel() {
   const [newImages, setNewImages] = useState([]);
   const fileInputRef = React.useRef(null);
 
+  // Add dropdown and search state for search functionality
+  const [customDropdownOpen, setCustomDropdownOpen] = useState({
+    boardBasis: false,
+    destination: false,
+  });
+
+  const [dropdownSearch, setDropdownSearch] = useState({
+    boardBasis: '',
+    destination: '',
+  });
+
+  // Handle search functionality for dropdowns
+  const handleSearchChange = (dropdown, value) => {
+    setDropdownSearch(prev => ({
+      ...prev,
+      [dropdown]: value
+    }));
+  };
+
   // Helper function for validating image
   const validateImage = (file) => {
     // Check file type
@@ -488,6 +507,140 @@ export function ManageHotel() {
                 setFormData({ ...formData, about: e.target.value })
               }
             />
+            {/* Board Basis Dropdown */}
+            <div className="relative">
+              <Typography variant="h6">Board Basis</Typography>
+              <button
+                type="button"
+                className="w-full flex items-center justify-between bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded"
+                onClick={() => setCustomDropdownOpen(prev => ({
+                  ...prev,
+                  boardBasis: !prev.boardBasis
+                }))}
+              >
+                <span className="text-left">
+                  {formData.boardBasis ? 
+                    boardBasis.find(basis => basis._id === formData.boardBasis)?.name || "Select Board Basis"
+                    : "Select Board Basis"}
+                </span>
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              
+              {customDropdownOpen.boardBasis && (
+                <>
+                  <div 
+                    className="absolute z-[100000] mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-64 overflow-hidden flex flex-col"
+                  >
+                    {/* Search input */}
+                    <div className="p-2 border-b sticky top-0 bg-white">
+                      <input
+                        type="text"
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                        placeholder="Search board basis..."
+                        value={dropdownSearch.boardBasis}
+                        onChange={(e) => handleSearchChange('boardBasis', e.target.value)}
+                      />
+                    </div>
+                    
+                    {/* Options list with scroll */}
+                    <div className="overflow-y-auto max-h-48">
+                      {boardBasis
+                        .filter(basis => 
+                          basis.name.toLowerCase().includes(dropdownSearch.boardBasis.toLowerCase())
+                        )
+                        .map((basis) => (
+                          <div 
+                            key={basis._id}
+                            className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => {
+                              setFormData({ ...formData, boardBasis: basis._id });
+                              setCustomDropdownOpen(prev => ({...prev, boardBasis: false}));
+                            }}
+                          >
+                            <span className="text-sm text-gray-700 flex-1">
+                              {basis.name}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                  <div 
+                    className="fixed inset-0 z-[10000]" 
+                    onClick={() => setCustomDropdownOpen(prev => ({...prev, boardBasis: false}))}
+                  ></div>
+                </>
+              )}
+            </div>
+
+            {/* Destination Dropdown */}
+            <div className="relative">
+              <Typography variant="h6">Destination</Typography>
+              <button
+                type="button"
+                className="w-full flex items-center justify-between bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded"
+                onClick={() => setCustomDropdownOpen(prev => ({
+                  ...prev,
+                  destination: !prev.destination
+                }))}
+              >
+                <span className="text-left">
+                  {formData.destination ? 
+                    destinations.find(dest => dest._id === formData.destination)?.name || "Select Destination"
+                    : "Select Destination"}
+                </span>
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              
+              {customDropdownOpen.destination && (
+                <>
+                  <div 
+                    className="absolute z-[100000] mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-64 overflow-hidden flex flex-col"
+                  >
+                    {/* Search input */}
+                    <div className="p-2 border-b sticky top-0 bg-white">
+                      <input
+                        type="text"
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                        placeholder="Search destinations..."
+                        value={dropdownSearch.destination}
+                        onChange={(e) => handleSearchChange('destination', e.target.value)}
+                      />
+                    </div>
+                    
+                    {/* Options list with scroll */}
+                    <div className="overflow-y-auto max-h-48">
+                      {destinations
+                        .filter(destination => 
+                          destination.name.toLowerCase().includes(dropdownSearch.destination.toLowerCase())
+                        )
+                        .map((destination) => (
+                          <div 
+                            key={destination._id}
+                            className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => {
+                              setFormData({ ...formData, destination: destination._id });
+                              setCustomDropdownOpen(prev => ({...prev, destination: false}));
+                            }}
+                          >
+                            <span className="text-sm text-gray-700 flex-1">
+                              {destination.name}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                  <div 
+                    className="fixed inset-0 z-[10000]" 
+                    onClick={() => setCustomDropdownOpen(prev => ({...prev, destination: false}))}
+                  ></div>
+                </>
+              )}
+            </div>
+
             <Input
               label="Room Type"
               value={formData.roomType}
@@ -580,33 +733,9 @@ export function ManageHotel() {
               + Add Room Facility
             </Button>
 
-            <Select
-              label="Board Basis"
-              value={formData.boardBasis}
-              onChange={(value) =>
-                setFormData({ ...formData, boardBasis: value })
-              }
-            >
-              {boardBasis.map((basis) => (
-                <Option key={basis._id} value={basis._id}>
-                  {basis.name}
-                </Option>
-              ))}
-            </Select>
 
-            <Select
-              label="Destination"
-              value={formData.destination}
-              onChange={(value) =>
-                setFormData({ ...formData, destination: value })
-              }
-            >
-              {destinations.map((destination) => (
-                <Option key={destination._id} value={destination._id}>
-                  {destination.name}
-                </Option>
-              ))}
-            </Select>
+
+
 
             <Input
               label="External Booking Link"

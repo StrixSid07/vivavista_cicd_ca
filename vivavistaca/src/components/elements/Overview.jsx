@@ -47,6 +47,8 @@ const formatDestinationText = (primaryDestination, additionalDestinations, selec
     });
   }
   
+
+  
   // Create a map to associate selected places with destinations
   const selectedPlacesMap = {};
   
@@ -60,6 +62,8 @@ const formatDestinationText = (primaryDestination, additionalDestinations, selec
       // Use the place name from allPlacesMap if available, otherwise use the ID
       const placeId = place.placeId?._id || place.placeId;
       const placeName = allPlacesMap[placeId] || place.placeId?.name || "Place";
+      
+
       selectedPlacesMap[destId].push(placeName);
     });
   }
@@ -166,7 +170,7 @@ const Overview = ({
           <MapPin className="w-6 h-6 text-red-500" />
           Destinations
         </h2>
-        <p className="text-gray-800 text-base leading-relaxed">
+        <p className="text-gray-800 text-base leading-relaxed" title={formatDestinationText(tripData.destination, tripData.destinations, selectedPlaces)}>
           {formatDestinationText(tripData.destination, tripData.destinations, selectedPlaces)}
         </p>
       </div>

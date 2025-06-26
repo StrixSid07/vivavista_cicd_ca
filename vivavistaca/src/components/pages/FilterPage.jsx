@@ -49,6 +49,7 @@ const formatDestinationText = (primaryDestination, additionalDestinations, selec
   
   // If selectedPlaces exists, organize them by destination
   if (selectedPlaces && selectedPlaces.length > 0) {
+
     selectedPlaces.forEach(place => {
       const destId = place.destinationId?._id || place.destinationId;
       if (!selectedPlacesMap[destId]) {
@@ -57,6 +58,7 @@ const formatDestinationText = (primaryDestination, additionalDestinations, selec
       // Use the place name from allPlacesMap if available, otherwise use the ID
       const placeId = place.placeId?._id || place.placeId;
       const placeName = allPlacesMap[placeId] || place.placeId?.name || "Place";
+
       selectedPlacesMap[destId].push(placeName);
     });
   }
@@ -401,7 +403,7 @@ const FilterPage = () => {
                 <div className="md:flex hidden flex-wrap gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
                     <MapPin className="w-4 h-4 text-red-500" />
-                    {tripData.destinations && tripData.destinations.length > 0 ? (
+                    {(tripData.destinations && tripData.destinations.length > 0) || (selectedPlaces && selectedPlaces.length > 0) ? (
                       <span>
                         {formatDestinationText(tripData.destination, tripData.destinations, selectedPlaces)}
                       </span>
@@ -445,7 +447,7 @@ const FilterPage = () => {
                 <div className="grid grid-cols-1 md:hidden gap-4 md:-mt-8 mt-3">
                   <div className="flex items-center gap-2 text-base text-gray-600">
                     <MapPin className="w-6 h-7 text-red-500" />
-                    {tripData.destinations && tripData.destinations.length > 0 ? (
+                    {(tripData.destinations && tripData.destinations.length > 0) || (selectedPlaces && selectedPlaces.length > 0) ? (
                       <span>
                         {formatDestinationText(tripData.destination, tripData.destinations, selectedPlaces)}
                       </span>

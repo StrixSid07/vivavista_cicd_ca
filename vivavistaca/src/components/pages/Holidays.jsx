@@ -117,16 +117,10 @@ const Holidays = () => {
   );
 
   // Get the current vacation type name from slug
-  const vacationTypeName = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : "Vacations";
   
-  // Format title for better mobile display
-  const formatTitle = (name) => {
-    // Replace hyphens with spaces and clean up the text
-    return name.replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
-  };
   
-  const formattedVacationName = formatTitle(vacationTypeName);
-  const vacationTypeTitle = `${formattedVacationName} Vacations`;
+  
+  const vacationTypeTitle = `${slugname}`;
 
   return (
     <div>

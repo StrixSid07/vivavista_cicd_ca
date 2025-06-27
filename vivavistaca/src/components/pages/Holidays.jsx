@@ -20,7 +20,7 @@ import {
 } from "@material-tailwind/react";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Base_Url } from "../../utils/Api";
-import { generateDealSlug } from "../../utils/slugify";
+import { generateDealSlug, slugify } from "../../utils/slugify";
 import { unslugify } from "../../utils/slugify";
 import { holidays } from "../../assets";
 
@@ -50,27 +50,63 @@ const formatDestinationText = (primaryDestination, additionalDestinations) => {
 
 const Holidays = () => {
   const { name: slug } = useParams();
-  console.log("this is slug", unslugify(slug));
-  const slugname = unslugify(slug);;
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [imageIndex, setImageIndex] = useState({});
+  const [holidayCategories, setHolidayCategories] = useState([]);
+  const [vacationTypeTitle, setVacationTypeTitle] = useState('');
   const navigate = useNavigate();
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = window.innerWidth < 768 ? 4 : 6; // 4 for mobile, 6 for desktop
 
+  // Create slug-to-name mapping function
+  const getVacationTitleFromSlug = (slug, categories) => {
+    if (!slug || !categories.length) return unslugify(slug);
+    
+    // Try to find exact match by creating slugs from category names
+    const matchedCategory = categories.find(category => {
+      const categorySlug = slugify(category.name);
+      return categorySlug.toLowerCase() === slug.toLowerCase();
+    });
+    
+    if (matchedCategory) {
+      return matchedCategory.name;
+    }
+    
+    // Fallback to unslugify function
+    return unslugify(slug);
+  };
+
   useEffect(() => {
-    if (!slug) return;
+    // Fetch holiday categories first
+    const fetchHolidayCategories = async () => {
+      try {
+        const response = await axios.get(`${Base_Url}/holidays/dropdown-holiday`);
+        setHolidayCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching holiday categories:", error);
+      }
+    };
+    
+    fetchHolidayCategories();
+  }, []);
+
+  useEffect(() => {
+    if (!slug || !holidayCategories.length) return;
+
+    // Set vacation title from slug using dynamic mapping
+    const title = getVacationTitleFromSlug(slug, holidayCategories);
+    setVacationTypeTitle(title);
 
     const fetchDeals = async () => {
       setLoading(true);
       try {
         const response = await axios.get(
           `${Base_Url}/holidays/holiday-filter`,
-          { params: { slug: slugname } }
+          { params: { slug: title } }
         );
-        console.log("this is fetch data", response);
+        console.log("Fetching deals for:", title);
         setDeals(response.data);
         setImageIndex(
           response.data.reduce((acc, deal) => ({ ...acc, [deal._id]: 0 }), {})
@@ -82,7 +118,7 @@ const Holidays = () => {
       }
     };
     fetchDeals();
-  }, [slug]);
+  }, [slug, holidayCategories]);
 
   const handlePrevImage = (e, dealId, images) => {
     // Stop event propagation to prevent bubbling to parent elements
@@ -116,11 +152,7 @@ const Holidays = () => {
     currentPage * itemsPerPage
   );
 
-  // Get the current vacation type name from slug
-  
-  
-  
-  const vacationTypeTitle = `${slugname}`;
+  // Get the current vacation type name from slug - now handled dynamically above
 
   return (
     <div>

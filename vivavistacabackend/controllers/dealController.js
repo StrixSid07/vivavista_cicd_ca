@@ -604,15 +604,35 @@ const getDealById = async (req, res) => {
           select: "name code location category",
         });
       
-      // Find deal by slugified title
+      // Find deal by slugified title (supports multiple slug formats)
       deal = allDeals.find(d => {
-        // Slugify the title by removing spaces and special characters
-        const slugifiedTitle = d.title
+        // Old format: remove spaces and special characters (lowercase)
+        const oldSlugifiedTitle = d.title
           .toLowerCase()
           .replace(/\s+/g, "")
           .replace(/[^a-z0-9]/g, "");
         
-        return slugifiedTitle === req.params.id.toLowerCase();
+        // New readable format: preserve capitalization, use underscores
+        const readableSlugifiedTitle = d.title
+          .trim()
+          .replace(/[^\w\s-]/g, '') // Remove special characters except spaces, hyphens, and word characters
+          .replace(/\s+/g, '_') // Replace spaces with underscores
+          .replace(/_+/g, '_') // Replace multiple underscores with single underscore
+          .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+        
+        // Previous hyphen format (lowercase)
+        const hyphenSlugifiedTitle = d.title
+          .toLowerCase()
+          .trim()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+        
+        const requestId = req.params.id;
+        return oldSlugifiedTitle === requestId.toLowerCase() || 
+               readableSlugifiedTitle === requestId || 
+               hyphenSlugifiedTitle === requestId.toLowerCase();
       });
     }
 

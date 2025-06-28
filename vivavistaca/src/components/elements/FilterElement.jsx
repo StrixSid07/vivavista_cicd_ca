@@ -660,7 +660,13 @@ useEffect(() => {
                 const sortedAirports = Object.values(airportPriceMap).sort((a, b) => a.price - b.price);
                 
                 return sortedAirports.map((item, index) => (
-                  <div key={item.airport._id} className="flex items-center justify-between text-xs">
+                  <div 
+                    key={item.airport._id} 
+                    className="flex items-center justify-between text-xs p-2 rounded cursor-pointer transition-shadow hover:shadow-md hover:bg-blue-50"
+                    onClick={() => {
+                      handleAirportChange(item.airport._id);
+                    }}
+                  >
                     <div className="flex-1">
                       <div className="font-medium text-gray-700">{item.airport.name}</div>
                       <div className="text-gray-500 text-xs">{item.airport.category}</div>

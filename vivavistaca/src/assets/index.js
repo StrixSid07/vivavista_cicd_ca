@@ -31,6 +31,7 @@ import topdeals from "./bg/Topdeals.jpg";
 import blog from "./bg/Blog.jpg";
 import filterformat from "./bg/filterformat.webp";
 import Canada from "./bg/Canada.jpg";
+import SubscribeBackground from "./bg/SubscribeBackground.jpg";
 export {
   logo,
   homebg,
@@ -65,4 +66,5 @@ export {
   blog,
   filterformat,
   Canada,
+  SubscribeBackground,
 };

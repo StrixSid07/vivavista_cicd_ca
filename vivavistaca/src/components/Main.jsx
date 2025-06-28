@@ -27,6 +27,7 @@ import {
 } from "./pages";
 import { MainScreen } from "./screens";
 import TravelFilter from "./elements/TravelFilter";
+import { SubscribePopup } from "./elements";
 
 const Main = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -125,6 +126,9 @@ const Main = () => {
         <div className="fixed right-0 md:right-0 top-1/2 transform -translate-y-1/2 z-[1000]">
           <SpeedDiel />
         </div>
+        
+        {/* Subscribe Popup */}
+        <SubscribePopup />
       </div>
     </Router>
   );

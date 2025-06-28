@@ -633,6 +633,47 @@ useEffect(() => {
             </div>
           </div>
         )}
+
+        {/* Airport Prices List */}
+        {prices && prices.length > 0 && (!isMobileView || windowHeight > 700) && (
+          <div className="mt-4 border-t border-gray-200 pt-4">
+            <Typography variant="small" className="font-semibold text-gray-800 mb-3 customfontstitle">
+              Best Airport Prices
+            </Typography>
+            <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
+              {(() => {
+                // Process prices to find cheapest price for each unique airport
+                const airportPriceMap = {};
+                prices.forEach(priceItem => {
+                  if (priceItem.airport && priceItem.price) {
+                    const airportId = priceItem.airport._id;
+                    if (!airportPriceMap[airportId] || airportPriceMap[airportId].price > priceItem.price) {
+                      airportPriceMap[airportId] = {
+                        airport: priceItem.airport,
+                        price: priceItem.price
+                      };
+                    }
+                  }
+                });
+                
+                // Convert to array and sort by price (cheapest first)
+                const sortedAirports = Object.values(airportPriceMap).sort((a, b) => a.price - b.price);
+                
+                return sortedAirports.map((item, index) => (
+                  <div key={item.airport._id} className="flex items-center justify-between text-xs">
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-700">{item.airport.name}</div>
+                      <div className="text-gray-500 text-xs">{item.airport.category}</div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-bold text-blue-600">${item.price}</span>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
       </CardFooter>
       <Dialog
         open={openDialog}

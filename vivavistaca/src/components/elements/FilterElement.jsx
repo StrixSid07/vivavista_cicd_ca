@@ -638,7 +638,7 @@ useEffect(() => {
         {prices && prices.length > 0 && (!isMobileView || windowHeight > 700) && (
           <div className="mt-4 border-t border-gray-200 pt-4">
             <Typography variant="small" className="font-semibold text-gray-800 mb-3 customfontstitle">
-              Best Airport Prices
+              Lowest price from selected airport
             </Typography>
             <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
               {(() => {
@@ -662,14 +662,14 @@ useEffect(() => {
                 return sortedAirports.map((item, index) => (
                   <div 
                     key={item.airport._id} 
-                    className="flex items-center justify-between text-xs p-2 rounded cursor-pointer transition-shadow hover:shadow-md hover:bg-blue-50"
+                    className="flex items-center justify-between text-sm p-2 rounded cursor-pointer transition-shadow hover:shadow-md hover:bg-blue-50"
                     onClick={() => {
                       handleAirportChange(item.airport._id);
                     }}
                   >
                     <div className="flex-1">
                       <div className="font-medium text-gray-700">{item.airport.name}</div>
-                      <div className="text-gray-500 text-xs">{item.airport.category}</div>
+                      <div className="text-gray-500 text-sm">{item.airport.category}</div>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="font-bold text-blue-600">${item.price}</span>

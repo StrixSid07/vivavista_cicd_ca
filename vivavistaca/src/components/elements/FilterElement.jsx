@@ -663,7 +663,7 @@ const FilterElement = ({
         {/* Airport Prices List */}
         {prices && prices.length > 0 && (!isMobileView || windowHeight > 700) && (
           <div className="">
-            <Typography variant="small" className="font-semibold text-gray-800 mb-2 customfontstitle">
+            <Typography variant="small" className="font-bold text-gray-800 mb-2 customfontstitle">
               Lowest price from selected airport
             </Typography>
             <div className="space-y-2 max-h-32 border-t border-gray-200 overflow-y-auto pt-2 pr-2">

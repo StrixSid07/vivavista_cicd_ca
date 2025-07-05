@@ -431,13 +431,20 @@ const FilterElement = ({
       <Card
         className={`w-full shadow-lg transition-all duration-300 hover:shadow-xl ${!isMobileView ? "sticky top-20" : ""
           } mt-0`}
-        style={{ maxHeight: isMobileView ? "none" : "calc(100vh - 100px)" }}
+        style={{ 
+          maxHeight: isMobileView ? "none" : "calc(100vh - 100px)",
+          height: isMobileView ? "auto" : "auto",
+          minHeight: isMobileView ? "480px" : "520px" 
+        }}
       >
         <CardHeader
           color="white"
           className={`flex flex-col items-center p-4 bg-gradient-to-r from-blue-500 to-indigo-600 cursor-pointer ${isMobileView ? "py-3" : "py-6"
             }`}
-          style={{ minHeight: isMobileView ? "120px" : "140px" }}
+          style={{ 
+            minHeight: isMobileView ? "120px" : "140px",
+            height: isMobileView ? "120px" : "140px"
+          }}
           onClick={(e) => {
             e.stopPropagation();
             handlePriceCardInteraction();
@@ -458,12 +465,16 @@ const FilterElement = ({
         </CardHeader>
 
         {/* Body: Selectors & Price */}
-        <CardBody className={`p-4 space-y-6 ${isMobileView ? "py-3" : "px-5 py-5"}`}>
+        <CardBody className={`p-4 space-y-4 ${isMobileView ? "py-3" : "px-5 py-4"}`}
+          style={{ 
+            height: isMobileView ? "auto" : "auto",
+            minHeight: isMobileView ? "200px" : "220px"
+          }}>
           {/* Departure Airport */}
           <div onClick={handlePriceCardInteraction} className={isMobileView ? "" : "mb-2"}>
             <Typography
               variant="small"
-              className="font-medium text-gray-700 mb-2 customfontstitle"
+              className="font-bold text-black mb-2 customfontstitle"
             >
               Departure Airport
             </Typography>
@@ -498,7 +509,7 @@ const FilterElement = ({
           >
             <Typography
               variant="small"
-              className="font-medium text-gray-700 mb-2 customfontstitle"
+              className="font-bold text-black mb-2 customfontstitle"
             >
               Number of Travelers
             </Typography>
@@ -539,13 +550,13 @@ const FilterElement = ({
           >
             <Typography
               variant="small"
-              className="font-medium text-gray-700 customfontstitle"
+              className="font-bold text-black customfontstitle"
             >
               Total Price:
             </Typography>
             <Typography
               variant={isMobileView ? "h6" : "h5"}
-              className="font-bold tracking-wide bg-transparent bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600 customfontstitle"
+              className="font-bold tracking-wide bg-transparent bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600 customfontstitle total-price-display"
             >
               ${totalPrice}
             </Typography>
@@ -553,7 +564,11 @@ const FilterElement = ({
         </CardBody>
 
         {/* Footer: Button & Contact Info */}
-        <CardFooter className={`p-4 pt-2 space-y-4 ${isMobileView ? "py-3" : "px-5 py-5"}`}>
+        <CardFooter className={`p-4 pt-2 space-y-3 ${isMobileView ? "py-3" : "px-5 py-4"}`}
+          style={{ 
+            height: isMobileView ? "auto" : "auto",
+            minHeight: isMobileView ? "160px" : "160px" 
+          }}>
           <Button
             size={isMobileView ? "md" : "lg"}
             className="transition-colors duration-500 ease-in-out bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-indigo-600 hover:to-blue-700 w-full normal-case text-white font-semibold customfontstitle py-3"
@@ -561,34 +576,6 @@ const FilterElement = ({
           >
             Book Now
           </Button>
-          {/* <Button
-          size="lg"
-          className="
-    relative overflow-hidden bg-gray-200 w-full normal-case text-white font-semibold transition-all duration-[1000ms] ease-in-out
-    hover:text-white group"
-          onClick={handleSubmit}
-        >
-          <span
-            className="
-      absolute left-0 h-20 w-20 bg-[#e05c00] rounded-full transform -translate-x-1/2 -translate-y-1/2
-      transition-all duration-[1000ms] ease-in-out
-      group-hover:scale-[20] group-hover:w-full group-hover:h-full group-hover:rounded-none"
-          ></span>
-          <span className="relative z-10 text-deep-orange-600 transition-all duration-500 ease-in-out group-hover:text-white">
-            Book Now
-          </span>
-        </Button> */}
-
-          {/* <CalendarView
-          dealId={dealId}
-          dealtitle={dealtitle}
-          adultCount={adultCount}
-          departureDates={departureDates}
-          departureAirports={departureAirports}
-          priceMap={priceMap}
-          setSelectedTrip={setSelectedTrip} 
-          selectedAirport={selectedAirport}
-        /> */}
 
           {/* Phone / Call to Book - Only show on desktop or if mobile with more space */}
           {(!isMobileView || windowHeight > 700) && (
@@ -657,17 +644,25 @@ const FilterElement = ({
       </Card>
 
       <Card
-        className={`w-full shadow-lg transition-all duration-300 hover:shadow-xl p-2 ${!isMobileView ? "sticky top-20" : ""
+        className={`w-full shadow-lg transition-all duration-300 hover:shadow-xl ${!isMobileView ? "sticky top-20" : ""
           } mt-4`}
-        style={{ maxHeight: isMobileView ? "none" : "calc(100vh - 100px)" }}
+        style={{ 
+          maxHeight: isMobileView ? "none" : "calc(100vh - 100px)",
+          height: isMobileView ? "auto" : "auto",
+          minHeight: isMobileView ? "160px" : "180px"
+        }}
       >
         {/* Airport Prices List */}
         {prices && prices.length > 0 && (!isMobileView || windowHeight > 700) && (
-          <div className="">
+          <div className="p-4">
             <Typography variant="small" className="font-bold text-gray-800 mb-2 customfontstitle">
               Lowest price from selected airport
             </Typography>
-            <div className="space-y-2 max-h-32 border-t border-gray-200 overflow-y-auto pt-2 pr-2">
+            <div className="space-y-2 border-t border-gray-200 overflow-y-auto pt-2 pr-2"
+              style={{ 
+                maxHeight: isMobileView ? "120px" : "120px",
+                minHeight: isMobileView ? "80px" : "80px"
+              }}>
               {(() => {
                 // Process prices to find cheapest price for each unique airport
                 const airportPriceMap = {};
